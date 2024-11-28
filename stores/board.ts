@@ -16,7 +16,7 @@ export const useBoardStore = defineStore('board', () => {
   const scale = ref(1)
 
   // Actions
-  const initializeBoard = async (boardId: string) => {
+  const initializeBoard = async (boardId: string = 'create') => {
     loading.value = true
     try {
       const response = await fetch(`/api/board/${boardId}`)

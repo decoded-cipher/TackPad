@@ -68,6 +68,10 @@
 import { usePanZoom } from '~/composables/usePanZoom';
 import { useBoardStore } from '~/stores/board';
 
+definePageMeta({
+  alias:'/'
+})
+
 const route = useRoute();
 const boardStore = useBoardStore();
 
