@@ -10,6 +10,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@nuxthub/core": "^0.8.7",
     "@nuxtjs/tailwindcss": "^6.11.4",
     "@pinia/nuxt": "^0.5.1",
     "@vueuse/core": "^10.9.0",
@@ -19,6 +20,7 @@
     "vue-draggable-next": "^2.2.1"
   },
   "devDependencies": {
-    "@types/uuid": "^9.0.8"
+    "@types/uuid": "^9.0.8",
+    "wrangler": "^3.91.0"
   }
 }
