@@ -1,8 +1,7 @@
 export default defineNuxtConfig({
   devtools:{
-    enabled: false
+    enabled: true
   },
-
   modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt', '@nuxthub/core'],
 
   runtimeConfig: {
@@ -10,7 +9,9 @@ export default defineNuxtConfig({
       apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api'
     }
   },
-
+  hub:{
+    database:true
+  },
   app: {
     head: {
       title: 'Sticky Board',

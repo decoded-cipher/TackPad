@@ -28,7 +28,7 @@
       <div class="relative w-full h-full" :style="{ transform: 'translate(50%, 50%)' }">
         <template v-if="boardStore.board">
           <StickyNote
-            v-for="note in boardStore.board.notes"
+            v-for="note in boardStore.board.data.notes"
             :key="note.note_id"
             :note="note"
             :is-selected="boardStore.selectedId === note.note_id"
@@ -36,7 +36,7 @@
           />
 
           <TodoList
-            v-for="list in boardStore.board.todolists"
+            v-for="list in boardStore.board.data.todolists"
             :key="list.list_id"
             :list="list"
             :is-selected="boardStore.selectedId === list.list_id"

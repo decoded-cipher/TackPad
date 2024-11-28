@@ -7,20 +7,25 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
     "@nuxthub/core": "^0.8.7",
     "@nuxtjs/tailwindcss": "^6.11.4",
     "@pinia/nuxt": "^0.5.1",
     "@vueuse/core": "^10.9.0",
+    "drizzle-orm": "^0.36.4",
+    "lodash": "^4.17.21",
     "nanoid": "^5.0.9",
     "nuxt": "^3.13.0",
     "pinia": "^2.1.7",
     "vue-draggable-next": "^2.2.1"
   },
   "devDependencies": {
+    "@types/lodash": "^4.17.13",
     "@types/uuid": "^9.0.8",
+    "drizzle-kit": "^0.28.1",
     "wrangler": "^3.91.0"
   }
 }
