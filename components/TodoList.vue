@@ -12,7 +12,6 @@
   >
     <div class="p-4 border-b flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <img src="/logo.svg" alt="Todo" class="w-6 h-6" />
         <input
           v-model="localTitle"
           class="text-xl font-semibold bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-1"
@@ -80,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, onUnmounted } from 'vue';
 import { useEventListener, useDebounceFn } from '@vueuse/core';
 import type { TodoList, Task } from '~/types/board';
 import { useScaleAwareInteractions } from '~/composables/useScaleAwareInteractions';
@@ -111,18 +110,28 @@ const {
   { x: props.list.x_position, y: props.list.y_position },
   { width: props.list.width, height: props.list.height },
   {
-    getScale: () => boardStore.scale
+    minWidth: 200,
+    minHeight: 200,
+    grid: 1,
+    getScale: () => boardStore.scale,
+    onUpdate: (updates) => {
+      boardStore.updateTodoList(props.list.list_id, updates);
+    }
   }
 );
 
 const resizeHandles = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
 
 watch(() => props.list.title, (newTitle) => {
-  localTitle.value = newTitle;
+  if (newTitle !== localTitle.value) {
+    localTitle.value = newTitle;
+  }
 });
 
 const updateTitle = () => {
-  boardStore.updateTodoList(props.list.list_id, { title: localTitle.value });
+  if (localTitle.value !== props.list.title) {
+    boardStore.updateTodoList(props.list.list_id, { title: localTitle.value });
+  }
 };
 
 const addNewTask = () => {
@@ -143,9 +152,19 @@ const debouncedSave = useDebounceFn(() => {
 // Set up event listeners for move and resize
 useEventListener(window, 'mousemove', move);
 useEventListener(window, 'mouseup', stopInteraction);
+
+// Clean up
+onUnmounted(() => {
+  stopInteraction();
+});
 </script>
 
 <style scoped>
+.todo-list {
+  min-width: 200px;
+  min-height: 200px;
+}
+
 /* Custom scrollbar styles */
 .overflow-auto::-webkit-scrollbar {
   width: 8px;
@@ -176,6 +195,7 @@ useEventListener(window, 'mouseup', stopInteraction);
   height: 10px;
   background-color: white;
   border: 1px solid #ddd;
+  border-radius: 50%;
   pointer-events: all;
   cursor: pointer;
 }
