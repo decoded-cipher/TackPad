@@ -22,9 +22,6 @@
           @keydown.delete.stop
         />
       </div>
-      <button class="text-gray-500 hover:text-gray-700">
-        <span class="text-2xl">...</span>
-      </button>
     </div>
     
     <div class="p-4 overflow-auto" style="max-height: calc(100% - 64px);">

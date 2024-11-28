@@ -1,6 +1,6 @@
 <template>
   <div 
-    class="min-h-screen bg-[#F9FAFB] overflow-hidden"
+    class="min-h-screen bg-gray-100 bg-[radial-gradient(circle_at_1px_1px,#D1D5DB_1px,transparent_1px)] bg-[size:24px_24px] overflow-hidden"
     @mousedown="startPan"
     @mousemove="pan"
     @mouseup="endPan"
@@ -102,7 +102,7 @@ const addNote = () => {
   const position = {
     x: -translateX.value / scale.value + window.innerWidth / (2 * scale.value),
     y: -translateY.value / scale.value + window.innerHeight / (2 * scale.value),
-    color: '#FFE589',
+    color: '#FFD700',
     width: 300,
     height: 300,
   };
