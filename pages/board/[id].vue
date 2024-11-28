@@ -1,24 +1,31 @@
 <template>
   <div 
-    class="min-h-screen bg-gray-100 bg-[radial-gradient(circle_at_1px_1px,#D1D5DB_1px,transparent_1px)] bg-[size:24px_24px] overflow-hidden"
+    class="fixed inset-0 bg-gray-100 bg-[radial-gradient(circle_at_1px_1px,#D1D5DB_1px,transparent_1px)] bg-[size:24px_24px] overflow-hidden"
     @mousedown="startPan"
-    @mousemove="pan"
+    @touchstart.passive="startPan"
+    @touchmove.prevent="pan"
+    @touchend="endPan"
+    @touchcancel="endPan"
+    @wheel.prevent.passive="pan"
+    @mousemove.prevent="pan"
     @mouseup="endPan"
-    @wheel.prevent="handleZoom"
+    @mouseleave="endPan"
+    @wheel.ctrl.prevent="handleZoom"
     @keydown.delete="handleDelete"
     @click="boardStore.setSelectedId(null)"
-    tabindex="0"
+    tabindex="0" 
   >
     <div 
-      class="board-container relative w-full h-screen"
+      class="board-container absolute origin-center"
       :style="{
-        transform: `scale(${scale}) translate(${translateX}px, ${translateY}px)`,
-        transformOrigin: '0 0',
-        backgroundImage: 'radial-gradient(circle, #ddd 1px, transparent 1px)',
-        backgroundSize: '40px 40px',
+        transform: `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`,
+        width: '20000px',
+        height: '20000px',
+        left: '-10000px',
+        top: '-10000px'
       }"
-    >
-      <div class="relative" style="min-height: calc(100vh - 2rem)">
+    > 
+      <div class="relative w-full h-full" :style="{ transform: 'translate(50%, 50%)' }">
         <template v-if="boardStore.board">
           <StickyNote
             v-for="note in boardStore.board.notes"
@@ -40,7 +47,7 @@
     </div>
 
     <!-- Fixed Controls -->
-    <div class="fixed bottom-4 right-4 flex gap-2">
+    <div class="fixed bottom-4 right-4 flex gap-2 items-center">
       <button
         class="bg-white p-3 rounded-lg shadow-lg hover:bg-gray-50"
         @click.stop="addNote"
@@ -60,7 +67,6 @@
 <script setup lang="ts">
 import { usePanZoom } from '~/composables/usePanZoom';
 import { useBoardStore } from '~/stores/board';
-import { useBoardHistory } from '~/composables/useBoardHistory';
 
 const route = useRoute();
 const boardStore = useBoardStore();
@@ -81,21 +87,6 @@ watch(scale, (newScale) => {
   boardStore.setScale(newScale);
 });
 
-// Board history
-const { undo, redo, canUndo, canRedo } = useBoardHistory(computed(() => boardStore.board));
-
-// Handle keyboard shortcuts
-onMounted(() => {
-  window.addEventListener('keydown', (e) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
-      if (e.shiftKey && canRedo.value) {
-        redo();
-      } else if (canUndo.value) {
-        undo();
-      }
-    }
-  });
-});
 
 // Add new items
 const addNote = () => {

@@ -2,8 +2,7 @@
   <div
     :data-note="note.note_id"
     data-item="1"
-    ref="noteRef"
-    class="sticky-note absolute shadow-lg cursor-move"
+    class="sticky-note absolute shadow-lg cursor-move z-10"
     :style="{
       ...style,
       backgroundColor: note.color

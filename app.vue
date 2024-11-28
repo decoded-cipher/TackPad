@@ -5,6 +5,12 @@
 </template>
 
 <style>
+html, body {
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
 /* Global scrollbar styles */
 ::-webkit-scrollbar {
   width: 8px;

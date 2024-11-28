@@ -1,8 +1,7 @@
 <template>
   <div
     :data-list="list.list_id"
-    ref="listRef"
-    class="todo-list bg-white rounded-lg shadow-lg absolute cursor-move"
+    class="todo-list bg-white rounded-lg shadow-lg absolute cursor-move z-10"
     :class="{ 
       'ring-2 ring-blue-500': isSelected,
       'select-none': isMoving || isResizing 
