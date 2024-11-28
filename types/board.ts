@@ -26,6 +26,8 @@ export interface TodoList {
 
 export interface Board {
   board_id: string;
-  notes: Note[];
-  todolists: TodoList[];
+  data: {
+    notes: Note[];
+    todolists: TodoList[];
+  }
 }

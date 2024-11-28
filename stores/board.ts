@@ -1,137 +1,175 @@
-import { defineStore } from 'pinia';
-import { customAlphabet } from 'nanoid';
+import { ref, computed } from 'vue'
+import { defineStore } from 'pinia'
+import { customAlphabet } from 'nanoid'
+import { debounce } from 'lodash'
+
+import type { Board, Note, TodoList, Task } from '~/types/board'
+
 const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 10)
-import type { Board, Note, TodoList, Task } from '~/types/board';
 
-export const useBoardStore = defineStore('board', {
-  state: () => ({
-    board: null as Board | null,
-    loading: false,
-    error: null as string | null,
-    selectedId: null as string | null,
-    scale: 1,
-  }),
+export const useBoardStore = defineStore('board', () => {
+  // State
+  const board = ref<Board | null>(null)
+  const loading = ref(false)
+  const error = ref<string | null>(null)
+  const selectedId = ref<string | null>(null)
+  const scale = ref(1)
 
-  actions: {
-    async initializeBoard(boardId: string) {
-      this.loading = true;
-      try {
-        const response = await fetch(`/api/board/${boardId}`);
-        if (!response.ok) throw new Error('Failed to load board');
-        this.board = await response.json();
-      } catch (err) {
-        this.error = 'Failed to load board';
-        console.error(err);
-      } finally {
-        this.loading = false;
+  // Actions
+  const initializeBoard = async (boardId: string) => {
+    loading.value = true
+    try {
+      const response = await fetch(`/api/board/${boardId}`)
+      if (!response.ok) throw new Error('Failed to load board')
+      board.value = await response.json()
+      const route = useRoute()
+      if(route.params.id !== board.value?.board_id){
+        await navigateTo(`/board/${board.value?.board_id}`)
       }
-    },
+    } catch (err) {
+      error.value = 'Failed to load board'
+      console.error(err)
+    } finally {
+      loading.value = false
+    }
+  }
 
-    setSelectedId(id: string | null) {
-      this.selectedId = id;
-    },
+  const setSelectedId = (id: string | null) => {
+    selectedId.value = id
+  }
 
-    setScale(scale: number) {
-      this.scale = scale;
-    },
+  const setScale = (newScale: number) => {
+    scale.value = newScale
+  }
 
-    deleteSelected() {
-      if (!this.board || !this.selectedId) return;
-      
-      this.board.notes = this.board.notes.filter(note => note.note_id !== this.selectedId);
-      this.board.todolists = this.board.todolists.filter(list => list.list_id !== this.selectedId);
-      this.selectedId = null;
-      this.saveBoard();
-    },
+  const deleteSelected = () => {
+    if (!board.value || !selectedId.value) return
 
-    updateNote(noteId: string, updates: Partial<Note>) {
-      if (!this.board) return;
-      
-      const note = this.board.notes.find(n => n.note_id === noteId);
-      if (note) {
-        Object.assign(note, updates);
-        this.saveBoard();
-      }
-    },
+    board.value.data.notes = board.value.data.notes.filter(
+      note => note.note_id !== selectedId.value
+    )
+    board.value.data.todolists = board.value.data.todolists.filter(
+      list => list.list_id !== selectedId.value
+    )
+    selectedId.value = null
+    debouncedSaveBoard()
+  }
 
-    updateTodoList(listId: string, updates: Partial<TodoList>) {
-      if (!this.board) return;
-      
-      const list = this.board.todolists.find(l => l.list_id === listId);
-      if (list) {
-        Object.assign(list, updates);
-        this.saveBoard();
-      }
-    },
+  const updateNote = (noteId: string, updates: Partial<Note>) => {
+    if (!board.value) return
 
-    async addNote(content: string, position: { x: number; y: number; color: string; width: number; height: number }) {
-      if (!this.board) return;
+    const note = board.value.data.notes.find(n => n.note_id === noteId)
+    if (note) {
+      Object.assign(note, updates)
+      debouncedSaveBoard()
+    }
+  }
 
-      const newNote: Note = {
-        note_id: `STICKY-${nanoid(10)}`,
-        content,
-        x_position: position.x,
-        y_position: position.y,
-        color: position.color,
-        width: position.width,
-        height: position.height,
-      };
+  const updateTodoList = (listId: string, updates: Partial<TodoList>) => {
+    if (!board.value) return
 
-      this.board.notes.push(newNote);
-      await this.saveBoard();
-      return newNote;
-    },
+    const list = board.value.data.todolists.find(l => l.list_id === listId)
+    if (list) {
+      Object.assign(list, updates)
+      debouncedSaveBoard()
+    }
+  }
 
-    async addTodoList(position: { x: number; y: number; width: number; height: number }) {
-      if (!this.board) return;
+  const addNote = async (
+    content: string,
+    position: { x: number; y: number; color: string; width: number; height: number }
+  ) => {
+    if (!board.value) return
 
-      const newList: TodoList = {
-        list_id: `TODO-${nanoid(10)}`,
-        title: 'Todo List',
-        tasks: [],
-        x_position: position.x,
-        y_position: position.y,
-        width: position.width,
-        height: position.height,
-      };
+    const newNote: Note = {
+      note_id: `STICKY-${nanoid(10)}`,
+      content,
+      x_position: position.x,
+      y_position: position.y,
+      color: position.color,
+      width: position.width,
+      height: position.height,
+    }
 
-      this.board.todolists.push(newList);
-      await this.saveBoard();
-      return newList;
-    },
+    board.value.data.notes.push(newNote)
+    await saveBoard()
+    return newNote
+  }
 
-    async addTask(listId: string, content: string) {
-      if (!this.board) return;
+  const addTodoList = async (
+    position: { x: number; y: number; width: number; height: number }
+  ) => {
+    if (!board.value) return
 
-      const list = this.board.todolists.find(l => l.list_id === listId);
-      if (!list) return;
+    const newList: TodoList = {
+      list_id: `TODO-${nanoid(10)}`,
+      title: 'Todo List',
+      tasks: [],
+      x_position: position.x,
+      y_position: position.y,
+      width: position.width,
+      height: position.height,
+    }
 
-      const newTask: Task = {
-        task_id: `TASK-${nanoid(10)}`,
-        content,
-        completed: false,
-      };
+    board.value.data.todolists.push(newList)
+    await saveBoard()
+    return newList
+  }
 
-      list.tasks.push(newTask);
-      await this.saveBoard();
-      return newTask;
-    },
+  const addTask = async (listId: string, content: string) => {
+    if (!board.value) return
+    const list = board.value.data.todolists.find(l => l.list_id === listId)
+    if (!list) return
 
-    async saveBoard() {
-      if (!this.board) return;
+    const newTask: Task = {
+      task_id: `TASK-${nanoid(10)}`,
+      content,
+      completed: false,
+    }
 
-      try {
-        const response = await fetch(`/api/save/${this.board.board_id}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(this.board),
-        });
+    list.tasks.push(newTask)
+    await saveBoard()
+    return newTask
+  }
 
-        if (!response.ok) throw new Error('Failed to save board');
-      } catch (err) {
-        this.error = 'Failed to save board';
-        console.error(err);
-      }
-    },
-  },
-});
+  const saveBoard = async () => {
+    if (!board.value) return
+
+    try {
+      const response = await fetch(`/api/save/${board.value.board_id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(board.value),
+      })
+
+      if (!response.ok) throw new Error('Failed to save board')
+    } catch (err) {
+      error.value = 'Failed to save board'
+      console.error(err)
+    }
+  }
+
+  // Create debounced version of saveBoard
+  const debouncedSaveBoard = debounce(saveBoard, 1000)
+
+  return {
+    // State
+    board,
+    loading,
+    error,
+    selectedId,
+    scale,
+
+    // Actions
+    initializeBoard,
+    setSelectedId,
+    setScale,
+    deleteSelected,
+    updateNote,
+    updateTodoList,
+    addNote,
+    addTodoList,
+    addTask,
+    saveBoard,
+  }
+})
