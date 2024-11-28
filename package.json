@@ -10,12 +10,12 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "nuxt": "^3.13.0",
     "@nuxtjs/tailwindcss": "^6.11.4",
-    "@vueuse/core": "^10.9.0",
     "@pinia/nuxt": "^0.5.1",
+    "@vueuse/core": "^10.9.0",
+    "nanoid": "^5.0.9",
+    "nuxt": "^3.13.0",
     "pinia": "^2.1.7",
-    "uuid": "^9.0.1",
     "vue-draggable-next": "^2.2.1"
   },
   "devDependencies": {

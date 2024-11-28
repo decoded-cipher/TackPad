@@ -24,12 +24,12 @@
       </div>
     </div>
     
-    <div class="p-4 overflow-auto" style="max-height: calc(100% - 64px);">
+    <div class="p-4 pt-0 overflow-auto" style="max-height: calc(100% - 64px);">
       <div class="bg-gray-50 rounded-lg mb-4 flex items-center">
         <input
           type="text"
           placeholder="Add a new task"
-          class="w-full p-4 bg-transparent focus:outline-none text-gray-600"
+          class="w-full p-4 bg-gray-50 focus:outline-none text-gray-600"
           v-model="newTask"
           @keyup.enter="addNewTask"
           @mousedown.stop
@@ -74,7 +74,7 @@
         :key="handle"
         class="resize-handle"
         :class="handle"
-        @mousedown.stop="(e) => startResize(e, handle)"
+        @mousedown.stop="(e: MouseEvent) => startResize(e, handle)"
       />
     </div>
   </div>

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
-import { v4 as uuidv4 } from 'uuid';
+import { customAlphabet } from 'nanoid';
+const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 10)
 import type { Board, Note, TodoList, Task } from '~/types/board';
 
 export const useBoardStore = defineStore('board', {
@@ -67,7 +68,7 @@ export const useBoardStore = defineStore('board', {
       if (!this.board) return;
 
       const newNote: Note = {
-        note_id: uuidv4(),
+        note_id: `STICKY-${nanoid(10)}`,
         content,
         x_position: position.x,
         y_position: position.y,
@@ -85,7 +86,7 @@ export const useBoardStore = defineStore('board', {
       if (!this.board) return;
 
       const newList: TodoList = {
-        list_id: uuidv4(),
+        list_id: `TODO-${nanoid(10)}`,
         title: 'Todo List',
         tasks: [],
         x_position: position.x,
@@ -106,7 +107,7 @@ export const useBoardStore = defineStore('board', {
       if (!list) return;
 
       const newTask: Task = {
-        task_id: uuidv4(),
+        task_id: `TASK-${nanoid(10)}`,
         content,
         completed: false,
       };
