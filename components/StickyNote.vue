@@ -12,7 +12,7 @@
       'ring-2 ring-blue-500': isSelected,
       'select-none': isMoving || isResizing 
     }"
-    @mousedown="handleMouseDown"
+    @mousedown="startMove"
     @click.stop="$emit('select', note.note_id)"
   >
     <div class="p-6 h-full flex flex-col overflow-auto">
@@ -27,9 +27,11 @@
     </div>
 
     <ColorPicker
-      v-show="isSelected && !isMoving"
+      v-if="isSelected && !isMoving"
       class="absolute bottom-2 left-2"
-      v-model="selectColor"
+      :model-value="note.color"
+      @update:model-value="updateNoteColor"
+      @click.stop
     />
 
     <div v-if="isSelected && !isMoving" class="resize-handles">
@@ -38,7 +40,7 @@
         :key="handle"
         class="resize-handle"
         :class="handle"
-        @mousedown.stop="(e:MouseEvent) => startResize(e, handle)"
+        @mousedown.stop="(e: MouseEvent) => startResize(e, handle)"
       />
     </div>
   </div>
@@ -47,73 +49,88 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { useEventListener } from '@vueuse/core';
-import type { Note } from '~/types/board';
-import { useScaleAwareInteractions } from '~/composables/useScaleAwareInteractions';
-import { useBoardStore } from '~/stores/board';
+import { useScaleAwareInteractions } from '@/composables/useScaleAwareInteractions';
+import { useBoardStore } from '@/stores/board';
+import ColorPicker from './ColorPicker.vue';
+
+interface Note {
+  note_id: string;
+  content: string;
+  color: string;
+  x_position: number;
+  y_position: number;
+  width: number;
+  height: number;
+}
 
 const props = defineProps<{
   note: Note;
   isSelected: boolean;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'select', id: string): void;
 }>();
 
 const boardStore = useBoardStore();
 const localContent = ref(props.note.content);
-const selectColor = ref("red");
+
 const {
   style,
   isMoving,
   isResizing,
-  startMove: handleMouseDown,
+  startMove,
   move,
   startResize,
   stopInteraction
-} = useScaleAwareInteractions<Note>(
+} = useScaleAwareInteractions(
   { x: props.note.x_position, y: props.note.y_position },
   { width: props.note.width, height: props.note.height },
   {
+    minWidth: 200,
+    minHeight: 200,
+    grid: 1,
     getScale: () => boardStore.scale,
     onUpdate: (updates) => {
-      if (!isMoving.value && !isResizing.value) return;
-      boardStore.updateNote(props.note.note_id, {
-        x_position: updates.x_position,
-        y_position: updates.y_position,
-        width: updates.width,
-        height: updates.height
-      });
+      boardStore.updateNote(props.note.note_id, updates);
     }
   }
 );
 
-onMounted(()=> {
-  console.log('mounted')
-})
-
-
 const resizeHandles = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
 
 watch(() => props.note.content, (newContent) => {
-  localContent.value = newContent;
+  if (newContent !== localContent.value) {
+    localContent.value = newContent;
+  }
 });
 
 const updateContent = () => {
-  boardStore.updateNote(props.note.note_id, { content: localContent.value });
+  if (localContent.value !== props.note.content) {
+    boardStore.updateNote(props.note.note_id, { content: localContent.value });
+  }
 };
 
-// const selectColor = (color: string) => {
-//   alert(color)
-//   boardStore.updateNote(props.note.note_id, { color });
-// }
+const updateNoteColor = (newColor: string) => {
+  boardStore.updateNote(props.note.note_id, { color: newColor });
+};
 
 // Set up event listeners for move and resize
 useEventListener(window, 'mousemove', move);
 useEventListener(window, 'mouseup', stopInteraction);
+
+// Clean up
+onUnmounted(() => {
+  stopInteraction();
+});
 </script>
 
 <style scoped>
+.sticky-note {
+  min-width: 200px;
+  min-height: 200px;
+}
+
 /* Custom scrollbar styles */
 .overflow-auto::-webkit-scrollbar {
   width: 8px;
@@ -144,6 +161,7 @@ useEventListener(window, 'mouseup', stopInteraction);
   height: 10px;
   background-color: white;
   border: 1px solid #ddd;
+  border-radius: 50%;
   pointer-events: all;
   cursor: pointer;
 }
