@@ -1,6 +1,6 @@
 <template>
   <div
-    :data-list="list.list_id"
+    :data-list="list.id"
     class="todo-list bg-white rounded-lg shadow-lg absolute cursor-move z-10"
     :class="{ 
       'ring-2 ring-blue-500': isSelected,
@@ -8,7 +8,7 @@
     }"
     :style="style"
     @mousedown="handleMouseDown"
-    @click.stop="$emit('select', list.list_id)"
+    @click.stop="$emit('select', list.id)"
   >
     <div class="p-4 border-b flex items-center justify-between">
       <div class="flex items-center gap-2">
@@ -43,7 +43,7 @@
 
       <ul class="space-y-4 overflow-y-auto">
         <li 
-          v-for="task in list.tasks" 
+          v-for="task in list.content.tasks" 
           :key="task.task_id" 
           class="flex items-center gap-3"
         >
@@ -95,7 +95,7 @@ defineEmits<{
 }>();
 
 const boardStore = useBoardStore();
-const localTitle = ref(props.list.title);
+const localTitle = ref(props.list.content.title);
 const newTask = ref('');
 
 const {
@@ -115,28 +115,28 @@ const {
     grid: 1,
     getScale: () => boardStore.scale,
     onUpdate: (updates) => {
-      boardStore.updateTodoList(props.list.list_id, updates);
+      boardStore.updateItem(props.list.id, updates);
     }
   }
 );
 
 const resizeHandles = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
 
-watch(() => props.list.title, (newTitle) => {
+watch(() => props.list.content.title, (newTitle) => {
   if (newTitle !== localTitle.value) {
     localTitle.value = newTitle;
   }
 });
 
 const updateTitle = () => {
-  if (localTitle.value !== props.list.title) {
-    boardStore.updateTodoList(props.list.list_id, { title: localTitle.value });
+  if (localTitle.value !== props.list.content.title) {
+    boardStore.updateItem(props.list.id, { content: { ...props.list.content, title: localTitle.value } });
   }
 };
 
 const addNewTask = () => {
   if (!newTask.value.trim()) return;
-  boardStore.addTask(props.list.list_id, newTask.value);
+  boardStore.addTask(props.list.id, newTask.value);
   newTask.value = '';
 };
 
@@ -146,7 +146,12 @@ const toggleTask = (task: Task) => {
 };
 
 const debouncedSave = useDebounceFn(() => {
-  boardStore.updateTodoList(props.list.list_id, { tasks: [...props.list.tasks] });
+  boardStore.updateItem(props.list.id, { 
+    content: { 
+      ...props.list.content,
+      tasks: [...props.list.content.tasks]
+    }
+  });
 }, 500);
 
 // Set up event listeners for move and resize

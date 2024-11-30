@@ -64,7 +64,6 @@ export function usePanZoom() {
 
   const pan = (e: MouseEvent | TouchEvent | WheelEvent) => {
     if (!isPanning.value && !(e instanceof WheelEvent)) return;
-    e.preventDefault();
 
     if (e instanceof TouchEvent) {
       if (e.touches.length === 2) {

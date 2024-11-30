@@ -4,9 +4,9 @@ import { BOARDS } from '~/server/database/schema';
 import { Board } from '~/types/board';
 
 export default defineEventHandler(async (event) => {
-  const id = event.context.params?.id;
+  const boardId = event.context.params?.id;
 
-  if (!id) {
+  if (!boardId) {
     throw createError({
       statusCode: 400,
       message: 'Board ID is required'

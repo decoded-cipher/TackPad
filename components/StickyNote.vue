@@ -1,18 +1,18 @@
 <template>
   <div
-    :data-note="note.note_id"
+    :data-note="note.id"
     data-item="1"
     class="sticky-note absolute shadow-lg cursor-move z-10"
     :style="{
       ...style,
-      backgroundColor: note.color
+      backgroundColor: note.content.color
     }"
     :class="{ 
       'ring-2 ring-blue-500': isSelected,
       'select-none': isMoving || isResizing 
     }"
     @mousedown="startMove"
-    @click.stop="$emit('select', note.note_id)"
+    @click.stop="$emit('select', note.id)"
   >
     <div class="p-6 h-full flex flex-col overflow-auto">
       <textarea
@@ -28,7 +28,7 @@
     <ColorPicker
       v-if="isSelected && !isMoving"
       class="absolute bottom-2 left-2"
-      :model-value="note.color"
+      :model-value="note.content.color"
       @update:model-value="updateNoteColor"
       @click.stop
     />
@@ -52,18 +52,10 @@ import { useScaleAwareInteractions } from '@/composables/useScaleAwareInteractio
 import { useBoardStore } from '@/stores/board';
 import ColorPicker from './ColorPicker.vue';
 
-interface Note {
-  note_id: string;
-  content: string;
-  color: string;
-  x_position: number;
-  y_position: number;
-  width: number;
-  height: number;
-}
+import type { StickyNote } from '~/types/board';
 
 const props = defineProps<{
-  note: Note;
+  note: StickyNote;
   isSelected: boolean;
 }>();
 
@@ -72,7 +64,7 @@ const emit = defineEmits<{
 }>();
 
 const boardStore = useBoardStore();
-const localContent = ref(props.note.content);
+const localContent = ref(props.note.content.text);
 
 const {
   style,
@@ -91,27 +83,31 @@ const {
     grid: 1,
     getScale: () => boardStore.scale,
     onUpdate: (updates) => {
-      boardStore.updateNote(props.note.note_id, updates);
+      boardStore.updateItem(props.note.id, updates);
     }
   }
 );
 
 const resizeHandles = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
 
-watch(() => props.note.content, (newContent) => {
+watch(() => props.note.content.text, (newContent) => {
   if (newContent !== localContent.value) {
     localContent.value = newContent;
   }
 });
 
 const updateContent = () => {
-  if (localContent.value !== props.note.content) {
-    boardStore.updateNote(props.note.note_id, { content: localContent.value });
+  if (localContent.value !== props.note.content.text) {
+    boardStore.updateItem(props.note.id, {
+      content: { ...props.note.content, text: localContent.value }
+    });
   }
 };
 
 const updateNoteColor = (newColor: string) => {
-  boardStore.updateNote(props.note.note_id, { color: newColor });
+  boardStore.updateItem(props.note.id, {
+    content: { ...props.note.content, color: newColor }
+  });
 };
 
 // Set up event listeners for move and resize
