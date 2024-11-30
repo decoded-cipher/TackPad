@@ -26,23 +26,22 @@
       }"
     > 
       <div class="relative w-full h-full" :style="{ transform: 'translate(50%, 50%)' }">
-        <template v-if="boardStore.board">
-          <StickyNote
-            v-for="note in boardStore.board.data.notes"
-            :key="note.note_id"
-            :note="note"
-            :is-selected="boardStore.selectedId === note.note_id"
+        <template v-if="boardStore.board?.data.items">
+          <template v-for="item in boardStore.board.data.items" :key="item.id">
+            <StickyNote
+            v-if="item.kind === 'note'"
+            :note="item"
+            :is-selected="boardStore.selectedId === item.id"
             @select="boardStore.setSelectedId"
           />
-
           <TodoList
-            v-for="list in boardStore.board.data.todolists"
-            :key="list.list_id"
-            :list="list"
-            :is-selected="boardStore.selectedId === list.list_id"
+             v-if="item.kind === 'todo'"
+            :list="item"
+            :is-selected="boardStore.selectedId === item.id"
             @select="boardStore.setSelectedId"
           />
-        </template>
+          </template>
+ </template>
       </div>
     </div>
 
@@ -60,7 +59,34 @@
       >
         Add Todo List
       </button>
+      <button class="bg-white p-3 rounded-lg shadow-lg hover:bg-gray-50" @click="showPasswordDialog">🔒</button>
     </div>
+    <dialog class="p-4 w-80 md:w-96" ref="passwordRef">
+      <button @click="closePasswordDialog" class="absolute top-2 right-2 text-2xl text-gray-500 hover:text-gray-700">
+      &times;
+    </button>
+    <p class="text-lg font-medium mb-4">Enter Password</p>
+    <div class="relative w-full">
+      <input
+        type="password"
+        v-model="boardStore.password"
+        class="w-full border-2 border-green-400 rounded-md p-2 pl-10 focus:outline-none focus:ring-2 focus:ring-green-500"
+        placeholder="Password"
+      />
+      <span class="absolute top-1/2 left-3 transform -translate-y-1/2 text-gray-500">
+        🔒
+      </span>
+    </div>
+    <div class="text-sm mt-2">
+      Your data is encrypted and decrypted on your device, ensuring privacy and security. Please remember your password, as it cannot be recovered.
+      </div>
+    <button
+      @click="closePasswordDialog"
+      class="mt-4 px-4 py-2 bg-green-500 text-white rounded-lg shadow-md hover:bg-green-600"
+    >
+      Continue
+    </button>
+    </dialog>
   </div>
 </template>
 
@@ -120,6 +146,8 @@ const handleDelete = (e: KeyboardEvent) => {
   }
   boardStore.deleteSelected();
 };
+
+const {closePasswordDialog, passwordRef, showPasswordDialog} = usePasswordModal()
 </script>
 
 <style>
