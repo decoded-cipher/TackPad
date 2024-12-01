@@ -1,9 +1,18 @@
 <template>
   <div
     class="fixed inset-0 bg-gray-100 bg-[radial-gradient(circle_at_1px_1px,#D1D5DB_1px,transparent_1px)] bg-[size:24px_24px] overflow-hidden"
-    @mousedown="startPan" @touchstart.passive="startPan" @touchmove.prevent="pan" @touchend="endPan"
-    @touchcancel="endPan" @wheel.prevent.passive="pan" @mousemove.prevent="pan" @mouseup="endPan" @mouseleave="endPan"
-    @wheel.ctrl.prevent="handleZoom" @keydown.delete="handleDelete" @click="boardStore.setSelectedId(null)"
+    @mousedown="startPan"
+    @touchstart.passive="(e) => e.target === e.currentTarget && startPan(e)"
+    @touchmove.prevent="(e) => isPanning && pan(e)"
+    @touchend="endPan"
+    @touchcancel="endPan"
+    @wheel.prevent.passive="pan"
+    @mousemove.prevent="(e) => isPanning && pan(e)"
+    @mouseup="endPan"
+    @mouseleave="endPan"
+    @wheel.ctrl.prevent="handleZoom"
+    @keydown.delete="handleDelete"
+    @click="boardStore.setSelectedId(null)"
     @paste="handlePaste" @keydown.meta.v="handlePaste" @keydown.ctrl.v="handlePaste" tabindex="0">
     <div class="board-container absolute origin-center" :style="{
       transform: `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`,
@@ -107,7 +116,7 @@ onMounted(async () => {
 });
 
 // Pan and zoom functionality
-const { scale, translateX, translateY, startPan, pan, endPan, handleZoom } = usePanZoom();
+const { scale, translateX, translateY, startPan, pan, endPan, handleZoom, isPanning } = usePanZoom();
 
 // Update board store scale when zooming
 watch(scale, (newScale) => {

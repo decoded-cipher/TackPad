@@ -9,6 +9,7 @@
     }"
     :style="style"
     @mousedown.stop="startMove"
+    @touchstart.stop.prevent="startMove"
     @click.stop="$emit('select', itemId)"
   >
     <div class="w-full h-full">
@@ -19,8 +20,12 @@
         v-for="handle in resizeHandles"
         :key="handle"
         class="resize-handle"
-        :class="[`resize-handle-${handle}`]"
+        :class="[
+          `resize-handle-${handle}`,
+          'touch-handle'
+        ]"
         @mousedown.stop="(e) => startResize(handle, e)"
+        @touchstart.stop.prevent="(e) => startResize(handle, e)"
       />
     </template>
   </div>
@@ -71,6 +76,9 @@ const resizeHandles = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']
 .board-item {
   background: white;
   z-index: 10;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .board-item:hover {
@@ -137,5 +145,12 @@ const resizeHandles = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']
   bottom: -8px;
   left: -8px;
   cursor: nesw-resize;
+}
+
+@media (max-width: 768px) {
+  .touch-handle {
+    width: 24px;
+    height: 24px;
+  }
 }
 </style>
