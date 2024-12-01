@@ -107,7 +107,7 @@ const addTodoList = () => {
     x: -translateX.value / scale.value + window.innerWidth / (2 * scale.value),
     y: -translateY.value / scale.value + window.innerHeight / (2 * scale.value),
     width: 350,
-    height: 400,
+    height: 350,
   };
   boardStore.addTodoList(position);
 };
@@ -156,7 +156,7 @@ const handlePaste = async (e: ClipboardEvent) => {
 
         // If text looks like a TODO list (lines starting with [ ], [x], or - )
         const isTodoList = text.split('\n').some(line =>
-          line.trim().match(/^(\[ \]|\[x\]|-\s+)/)
+          line.trim().match(/^\[( |x?)?\]|\s*-\s+/)
         );
 
 
@@ -167,10 +167,12 @@ const handlePaste = async (e: ClipboardEvent) => {
             .map(line => line.trim())
             .filter(line => line.length > 0)
             .map(line => ({
-              text: line.replace(/^(\[ \]|\[x\]|-\s+)/, '').trim(),
+              text: line.replace(/^\[( |x?)?\]|\s*-\s+/, '').trim(),
               completed: line.includes('[x]')
             }));
 
+
+          position.height = todos.length * 40 + 160; // height of each todo item + minimum height  
           const pastedToDoList = await boardStore.addTodoList({
             ...position
           });
