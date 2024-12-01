@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { customAlphabet } from 'nanoid'
 import { debounce } from 'lodash'
 
-import type { Board, BoardItem, StickyNote, TodoList, Task } from '~/types/board'
+import type { Board, BoardItem, StickyNote, TodoList, Task, LinkItem } from '~/types/board'
 
 const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 10)
 
@@ -125,7 +125,117 @@ export const useBoardStore = defineStore('board', () => {
     return newTodo
   }
 
-  const addTask = async (listId: string, content: string) => {
+  const addLinkItem = async (
+    link: string, 
+    position: { x: number; y: number; width: number; height: number }
+  ): Promise<LinkItem | null> => {
+    if (!board.value) return null;
+    console.log("addLinkItem")
+
+    // Create initial link item immediately
+    const hostname = new URL(link).hostname;
+    const initialLinkItem: LinkItem = {
+      id: `LINK-${nanoid(10)}`,
+      kind: 'link',
+      content: {
+        url: link,
+        title: `Link to ${hostname}`,
+        image: '',
+        description: `Loading metadata...`
+      },
+      x_position: position.x,
+      y_position: position.y,
+      width: position.width,
+      height: position.height
+    };
+
+    // Add to board immediately
+    board.value.data.items.push(initialLinkItem);
+    debouncedSaveBoard();
+  
+    try {
+      const response = await fetch(
+        `/api/metadata?url=${encodeURIComponent(link)}`
+      );
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch link data: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      // Determine if we received oEmbed or regular metadata
+      const isOEmbed = data.source === 'oembed';
+      const metadata = data.data;
+      
+      // Update the existing link item with metadata
+      const updatedContent = isOEmbed 
+        ? {
+            url: link,
+            thumbnail_url: metadata.thumbnail_url || '',
+            thumbnail_width: metadata.width || metadata.thumbnail_width || position.width,
+            thumbnail_height: metadata.height || metadata.thumbnail_height || position.height,
+            html: metadata.html || '',
+            type: metadata.type || 'rich'
+          }
+        : {
+            url: link,
+            title: metadata.title || `Link to ${hostname}`,
+            image: metadata.image || metadata.thumbnail_url || '',
+            description: metadata.description || `A link to ${hostname}`
+          };
+
+      const updatedDimensions = isOEmbed 
+        ? {
+            width: metadata.width || metadata.thumbnail_width || position.width,
+            height: metadata.height || metadata.thumbnail_height || position.height
+          }
+        : {
+            width: position.width,
+            height: position.height
+          };
+  
+      console.log("Updating with metadata:", { content: updatedContent, ...updatedDimensions });
+      console.log(data);
+
+      // Find and update the link item
+      const itemIndex = board.value.data.items.findIndex(item => item.id === initialLinkItem.id);
+      if (itemIndex !== -1) {
+        const updatedItem: LinkItem = {
+          ...initialLinkItem,
+          content: updatedContent,
+          width: updatedDimensions.width,
+          height: updatedDimensions.height
+        };
+        board.value.data.items[itemIndex] = updatedItem;
+        debouncedSaveBoard();
+        return updatedItem;
+      }
+      return initialLinkItem;
+  
+    } catch (error) {
+      console.error('Error adding link item:', error);
+      console.log("fallback");
+
+      // Update the initial link item with final fallback content
+      const itemIndex = board.value.data.items.findIndex(item => item.id === initialLinkItem.id);
+      if (itemIndex !== -1) {
+        const fallbackItem: LinkItem = {
+          ...initialLinkItem,
+          content: {
+            ...initialLinkItem.content,
+            description: `A link to ${hostname}`
+          }
+        };
+        board.value.data.items[itemIndex] = fallbackItem;
+        debouncedSaveBoard();
+        return fallbackItem;
+      }
+      return initialLinkItem;
+    }
+  }
+
+  const addTask = async (listId: string, content: string | {text: string, completed?: boolean}) => {
     if (!board.value) return
     const list = board.value.data.items.find(item => 
       item.id === listId && item.kind === 'todo'
@@ -133,14 +243,23 @@ export const useBoardStore = defineStore('board', () => {
     
     if (!list) return
 
-    const newTask: Task = {
+    let newTask: Task = null!
+    if(typeof content === 'string'){
+    newTask = {
       task_id: `TASK-${nanoid(10)}`,
       content,
       completed: false,
     }
+    } else if(content.text) {
+      newTask = {
+        task_id: `TASK-${nanoid(10)}`,
+        content: content.text,
+        completed: Boolean(content.completed),
+      }
+    }
 
     list.content.tasks.push(newTask)
-    await saveBoard()
+    await debouncedSaveBoard()
     return newTask
   }
 
@@ -186,6 +305,7 @@ export const useBoardStore = defineStore('board', () => {
     updateItem,
     addNote,
     addTodoList,
+    addLinkItem,
     addTask,
     saveBoard,
   }

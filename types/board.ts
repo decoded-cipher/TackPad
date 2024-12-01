@@ -28,7 +28,31 @@ export interface TodoList extends BaseBoardItem {
   };
 }
 
-export type BoardItem = StickyNote | TodoList;
+
+interface BaseContent {
+  url: string;
+}
+
+interface RegularLinkContent extends BaseContent {
+  title: string;
+  image: string;
+  description: string;
+}
+
+interface OEmbedContent extends BaseContent {
+  thumbnail_url: string;
+  thumbnail_width: number;
+  thumbnail_height: number;
+  html: string;
+  type: string;
+}
+
+export interface LinkItem extends BaseBoardItem {
+  kind: 'link';
+  content: RegularLinkContent | OEmbedContent;
+}
+
+export type BoardItem = StickyNote | TodoList | LinkItem;
 
 export interface Board {
   board_id: string;
