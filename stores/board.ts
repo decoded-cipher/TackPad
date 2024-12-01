@@ -68,12 +68,24 @@ export const useBoardStore = defineStore('board', () => {
     debouncedSaveBoard()
   }
 
-  const updateItem = (itemId: string, updates: Partial<BoardItem>) => {
+  const updateItem = (itemId: string, updates: Partial<BoardItem> | { text?: string, color?: string }) => {
     if (!board.value) return
 
     const item = board.value.data.items.find(item => item.id === itemId)
     if (item) {
-      Object.assign(item, updates)
+      if ('text' in updates || 'color' in updates) {
+        // Handle StickyNote content updates
+        if (item.kind === 'note') {
+          item.content = {
+            ...item.content,
+            text: updates.text ?? item.content.text,
+            color: updates.color ?? item.content.color
+          }
+        }
+      } else {
+        // Handle other updates
+        Object.assign(item, updates)
+      }
       debouncedSaveBoard()
     }
   }
@@ -263,6 +275,22 @@ export const useBoardStore = defineStore('board', () => {
     return newTask
   }
 
+  const updateTask = async (listId: string, taskId: string, content: string) => {
+    if (!board.value) return
+
+    const list = board.value.data.items.find(item => 
+      item.id === listId && item.kind === 'todo'
+    ) as TodoList | undefined
+    
+    if (!list) return
+
+    const task = list.content.tasks.find(task => task.task_id === taskId)
+    if (task) {
+      task.content = content
+      await debouncedSaveBoard()
+    }
+  }
+
   const saveBoard = async () => {
     if (!board.value) return
     let {data, board_id } = unref(board.value)
@@ -307,6 +335,7 @@ export const useBoardStore = defineStore('board', () => {
     addTodoList,
     addLinkItem,
     addTask,
+    updateTask,
     saveBoard,
   }
 })
