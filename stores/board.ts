@@ -258,7 +258,7 @@ export const useBoardStore = defineStore('board', () => {
       x_position: position.x,
       y_position: position.y,
       width: position.width ?? 300,
-      height: position.height ?? 400,
+      height: position.height ?? 300,
       content: {
         timerType: 'Focus',
         duration: 25
