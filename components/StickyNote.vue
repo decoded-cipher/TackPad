@@ -1,172 +1,85 @@
 <template>
-  <div
-    :data-note="note.id"
-    data-item="1"
-    class="sticky-note absolute shadow-lg cursor-move z-10"
-    :style="{
-      ...style,
-      backgroundColor: note.content.color
-    }"
-    :class="{ 
-      'ring-2 ring-blue-500': isSelected,
-      'select-none': isMoving || isResizing 
-    }"
-    @mousedown="startMove"
-    @click.stop="$emit('select', note.id)"
+  <div 
+    class="w-full h-full flex flex-col relative"
+    :style="{ backgroundColor: color }"
   >
-    <div class="p-6 h-full flex flex-col overflow-auto">
-      <textarea
-        v-model="localContent"
-        class="w-full flex-grow bg-transparent resize-none focus:outline-none text-xl font-medium leading-tight"
-        placeholder="Enter your note"
-        @blur="updateContent"
-        @mousedown.stop
-        @keydown.delete.stop
+  
+      <ColorPicker
+        v-model="color"
+        @update:model-value="updateColor"
+        v-if="props.isSelected"
       />
-    </div>
 
-    <ColorPicker
-      v-if="isSelected && !isMoving"
-      class="absolute bottom-2 left-2"
-      :model-value="note.content.color"
-      @update:model-value="updateNoteColor"
-      @click.stop
+    <textarea
+      v-if="isEditing"
+      v-model="text"
+      class="w-full h-full p-6 bg-transparent resize-none focus:outline-none text-xl font-medium leading-tight"
+      placeholder="Enter your note"
+      @input="updateText"
+      @blur="isEditing = false"
+      @mousedown.stop
+      ref="textArea"
     />
-
-    <div v-if="isSelected && !isMoving" class="resize-handles">
-      <div
-        v-for="handle in resizeHandles"
-        :key="handle"
-        class="resize-handle"
-        :class="handle"
-        @mousedown.stop="(e: MouseEvent) => startResize(e, handle)"
-      />
+    <div
+      v-else
+      class="w-full h-full p-6 text-xl font-medium leading-tight whitespace-pre-wrap"
+      @dblclick.stop="startEditing"
+    >
+      {{ text || 'Enter your note' }}
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import { useEventListener } from '@vueuse/core';
-import { useScaleAwareInteractions } from '@/composables/useScaleAwareInteractions';
-import { useBoardStore } from '@/stores/board';
-import ColorPicker from './ColorPicker.vue';
-
-import type { StickyNote } from '~/types/board';
+import { ref, watch, nextTick } from 'vue'
+import { useBoardStore } from '~/stores/board'
+import ColorPicker from '~/components/ColorPicker.vue'
 
 const props = defineProps<{
-  note: StickyNote;
-  isSelected: boolean;
-}>();
+  itemId: string
+  initialText?: string
+  initialColor?: string
+  isSelected: boolean
+}>()
 
-const emit = defineEmits<{
-  (e: 'select', id: string): void;
-}>();
+const boardStore = useBoardStore()
+const text = ref(props.initialText || '')
+const color = ref(props.initialColor || '#FFD700')
+const isEditing = ref(false)
+const textArea = ref<HTMLTextAreaElement | null>(null)
 
-const boardStore = useBoardStore();
-const localContent = ref(props.note.content.text);
+async function startEditing() {
+  isEditing.value = true
+  await nextTick()
+  textArea.value?.focus()
+}
 
-const {
-  style,
-  isMoving,
-  isResizing,
-  startMove,
-  move,
-  startResize,
-  stopInteraction
-} = useScaleAwareInteractions(
-  { x: props.note.x_position, y: props.note.y_position },
-  { width: props.note.width, height: props.note.height },
-  {
-    minWidth: 200,
-    minHeight: 200,
-    grid: 1,
-    getScale: () => boardStore.scale,
-    onUpdate: (updates) => {
-      boardStore.updateItem(props.note.id, updates);
-    }
+function updateText(e: Event) {
+  const target = e.target as HTMLTextAreaElement
+  text.value = target.value
+  boardStore.updateItem(props.itemId, { text: text.value })
+}
+
+function updateColor(newColor: string) {
+  color.value = newColor
+  boardStore.updateItem(props.itemId, { color: newColor })
+}
+
+watch(() => props.initialText, (newText) => {
+  if (newText !== undefined) {
+    text.value = newText
   }
-);
+})
 
-const resizeHandles = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
-
-watch(() => props.note.content.text, (newContent) => {
-  if (newContent !== localContent.value) {
-    localContent.value = newContent;
+watch(() => props.initialColor, (newColor) => {
+  if (newColor !== undefined) {
+    color.value = newColor
   }
-});
-
-const updateContent = () => {
-  if (localContent.value !== props.note.content.text) {
-    boardStore.updateItem(props.note.id, {
-      content: { ...props.note.content, text: localContent.value }
-    });
-  }
-};
-
-const updateNoteColor = (newColor: string) => {
-  boardStore.updateItem(props.note.id, {
-    content: { ...props.note.content, color: newColor }
-  });
-};
-
-// Set up event listeners for move and resize
-useEventListener(window, 'mousemove', move);
-useEventListener(window, 'mouseup', stopInteraction);
-
-// Clean up
-onUnmounted(() => {
-  stopInteraction();
-});
+})
 </script>
 
 <style scoped>
-.sticky-note {
-  min-width: 200px;
-  min-height: 200px;
+textarea::placeholder {
+  color: rgba(0, 0, 0, 0.4);
 }
-
-/* Custom scrollbar styles */
-.overflow-auto::-webkit-scrollbar {
-  width: 8px;
-}
-
-.overflow-auto::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.overflow-auto::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
-}
-
-.overflow-auto::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-.resize-handles {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.resize-handle {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 50%;
-  pointer-events: all;
-  cursor: pointer;
-}
-
-.n { top: -5px; left: 50%; transform: translateX(-50%); cursor: n-resize; }
-.s { bottom: -5px; left: 50%; transform: translateX(-50%); cursor: s-resize; }
-.e { right: -5px; top: 50%; transform: translateY(-50%); cursor: e-resize; }
-.w { left: -5px; top: 50%; transform: translateY(-50%); cursor: w-resize; }
-.nw { top: -5px; left: -5px; cursor: nw-resize; }
-.ne { top: -5px; right: -5px; cursor: ne-resize; }
-.sw { bottom: -5px; left: -5px; cursor: sw-resize; }
-.se { bottom: -5px; right: -5px; cursor: se-resize; }
 </style>

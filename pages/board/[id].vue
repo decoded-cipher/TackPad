@@ -14,14 +14,38 @@
     }">
       <div class="relative w-full h-full" :style="{ transform: 'translate(50%, 50%)' }">
         <template v-if="boardStore.board?.data.items">
-          <template v-for="item in boardStore.board.data.items" :key="item.id">
-            <StickyNote v-if="item.kind === 'note'" :note="item" :is-selected="boardStore.selectedId === item.id"
-              @select="boardStore.setSelectedId" />
-            <TodoList v-if="item.kind === 'todo'" :list="item" :is-selected="boardStore.selectedId === item.id"
-              @select="boardStore.setSelectedId" />
-            <LinkItem v-if="item.kind === 'link'" :item="item" :is-selected="boardStore.selectedId === item.id"
-              @select="boardStore.setSelectedId" />
-          </template>
+          <BoardItemWrapper
+            v-for="item in boardStore.board.data.items"
+            :key="item.id"
+            :item-id="item.id"
+            :position="{
+              x: item.x_position,
+              y: item.y_position,
+              width: item.width,
+              height: item.height
+            }"
+            :is-selected="boardStore.selectedId === item.id"
+            @select="boardStore.setSelectedId"
+            @update:position="(updates) => updateItemPosition(item.id, updates)"
+          >
+            <StickyNote 
+              v-if="item.kind === 'note'" 
+              :item-id="item.id"
+              :initial-text="item.content.text"
+              :initial-color="item.content.color"
+              :is-selected="boardStore.selectedId === item.id"
+            />
+            <TodoList 
+              v-if="item.kind === 'todo'" 
+              :list="item" 
+              :is-selected="boardStore.selectedId === item.id"
+            />
+            <LinkItem 
+              v-if="item.kind === 'link'" 
+              :item="item" 
+              :is-selected="boardStore.selectedId === item.id"
+            />
+          </BoardItemWrapper>
         </template>
       </div>
     </div>
@@ -63,6 +87,7 @@
 </template>
 
 <script setup lang="ts">
+import BoardItemWrapper from '~/components/BoardItemWrapper.vue'
 import { usePanZoom } from '~/composables/usePanZoom';
 import { useBoardStore } from '~/stores/board';
 
@@ -88,7 +113,6 @@ const { scale, translateX, translateY, startPan, pan, endPan, handleZoom } = use
 watch(scale, (newScale) => {
   boardStore.setScale(newScale);
 });
-
 
 // Add new items
 const addNote = () => {
@@ -159,8 +183,6 @@ const handlePaste = async (e: ClipboardEvent) => {
           line.trim().match(/^\[( |x?)?\]|\s*-\s+/)
         );
 
-
-
         if (isTodoList) {
           // Create a todo list
           const todos = text.split('\n')
@@ -171,7 +193,6 @@ const handlePaste = async (e: ClipboardEvent) => {
               completed: line.includes('[x]')
             }));
 
-
           position.height = todos.length * 40 + 160; // height of each todo item + minimum height  
           const pastedToDoList = await boardStore.addTodoList({
             ...position
@@ -179,7 +200,6 @@ const handlePaste = async (e: ClipboardEvent) => {
 
           const id = pastedToDoList!.id;
           todos.forEach(content => boardStore.addTask(id, content.text))
-
 
         } else {
 
@@ -210,6 +230,15 @@ const handlePaste = async (e: ClipboardEvent) => {
 };
 
 const { closePasswordDialog, passwordRef, showPasswordDialog } = usePasswordModal()
+
+function updateItemPosition(itemId: string, updates: { x?: number, y?: number, width?: number, height?: number }) {
+  boardStore.updateItem(itemId, {
+    x_position: updates.x,
+    y_position: updates.y,
+    width: updates.width,
+    height: updates.height
+  })
+}
 </script>
 
 <style>

@@ -1,15 +1,5 @@
 <template>
-  <div
-    :data-list="list.id"
-    class="todo-list bg-white rounded-lg shadow-lg absolute cursor-move z-10"
-    :class="{ 
-      'ring-2 ring-blue-500': isSelected,
-      'select-none': isMoving || isResizing 
-    }"
-    :style="style"
-    @mousedown="handleMouseDown"
-    @click.stop="$emit('select', list.id)"
-  >
+  <div class="h-full flex flex-col bg-white rounded-lg">
     <div class="p-4 border-b flex items-center justify-between">
       <div class="flex items-center gap-2">
         <input
@@ -52,121 +42,116 @@
             :class="{ 'bg-blue-600': task.completed }"
             @click.stop="toggleTask(task)"
           >
-            <span v-if="task.completed" class="text-white">✓</span>
+            <svg
+              v-if="task.completed"
+              class="w-4 h-4 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
           </button>
           <input
-            v-model="task.content"
-            class="flex-1 focus:outline-none"
-            :class="{ 'line-through text-gray-400': task.completed }"
-            @blur="debouncedSave"
+            v-if="editingTaskId === task.task_id"
+            type="text"
+            v-model="editingContent"
+            class="flex-grow bg-transparent rounded px-1 focus:outline-none"
+            @blur="saveTaskEdit(task)"
+            @keyup.enter="saveTaskEdit(task)"
+            @keyup.esc="cancelTaskEdit"
             @mousedown.stop
-            @keydown.delete.stop
+            ref="editInput"
           />
+          <span 
+            v-else
+            class="flex-grow cursor-pointer"
+            :class="{ 'line-through text-gray-400': task.completed }"
+            @dblclick.stop="startEditing(task)"
+          >
+            {{ task.content }}
+          </span>
         </li>
       </ul>
-    </div>
-
-    <div v-if="isSelected && !isMoving" class="resize-handles">
-      <div
-        v-for="handle in resizeHandles"
-        :key="handle"
-        class="resize-handle"
-        :class="handle"
-        @mousedown.stop="(e: MouseEvent) => startResize(e, handle)"
-      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onUnmounted } from 'vue';
-import { useEventListener, useDebounceFn } from '@vueuse/core';
-import type { TodoList, Task } from '~/types/board';
-import { useScaleAwareInteractions } from '~/composables/useScaleAwareInteractions';
-import { useBoardStore } from '~/stores/board';
+import { ref, nextTick } from 'vue'
+import { useBoardStore } from '~/stores/board'
+import type { TodoList, Task } from '~/types/board'
 
 const props = defineProps<{
-  list: TodoList;
-  isSelected: boolean;
-}>();
+  list: TodoList
+  isSelected: boolean
+}>()
 
-defineEmits<{
-  (e: 'select', id: string): void;
-}>();
+const boardStore = useBoardStore()
+const localTitle = ref(props.list.content.title)
+const newTask = ref('')
+const editingTaskId = ref<string | null>(null)
+const editingContent = ref('')
+const editInput = ref<HTMLInputElement | null>(null)
 
-const boardStore = useBoardStore();
-const localTitle = ref(props.list.content.title);
-const newTask = ref('');
-
-const {
-  style,
-  isMoving,
-  isResizing,
-  startMove: handleMouseDown,
-  move,
-  startResize,
-  stopInteraction
-} = useScaleAwareInteractions(
-  { x: props.list.x_position, y: props.list.y_position },
-  { width: props.list.width, height: props.list.height },
-  {
-    minWidth: 200,
-    minHeight: 200,
-    grid: 1,
-    getScale: () => boardStore.scale,
-    onUpdate: (updates) => {
-      boardStore.updateItem(props.list.id, updates);
+function updateTitle() {
+  if (localTitle.value === props.list.content.title) return
+  boardStore.updateItem(props.list.id, {
+    content: {
+      ...props.list.content,
+      title: localTitle.value
     }
-  }
-);
+  })
+}
 
-const resizeHandles = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
+function addNewTask() {
+  if (!newTask.value.trim()) return
+  boardStore.addTask(props.list.id, newTask.value)
+  newTask.value = ''
+}
 
-watch(() => props.list.content.title, (newTitle) => {
-  if (newTitle !== localTitle.value) {
-    localTitle.value = newTitle;
-  }
-});
-
-const updateTitle = () => {
-  if (localTitle.value !== props.list.content.title) {
-    boardStore.updateItem(props.list.id, { content: { ...props.list.content, title: localTitle.value } });
-  }
-};
-
-const addNewTask = () => {
-  if (!newTask.value.trim()) return;
-  boardStore.addTask(props.list.id, newTask.value);
-  newTask.value = '';
-};
-
-const toggleTask = (task: Task) => {
-  task.completed = !task.completed;
-  debouncedSave();
-};
-
-const debouncedSave = useDebounceFn(() => {
-  boardStore.updateItem(props.list.id, { 
-    content: { 
+function toggleTask(task: Task) {
+  task.completed = !task.completed
+  boardStore.updateItem(props.list.id, {
+    content: {
       ...props.list.content,
       tasks: [...props.list.content.tasks]
     }
-  });
-}, 500);
+  })
+}
 
-// Set up event listeners for move and resize
-useEventListener(window, 'mousemove', move);
-useEventListener(window, 'mouseup', stopInteraction);
+function startEditing(task: Task) {
+  editingTaskId.value = task.task_id
+  editingContent.value = task.content
+  nextTick(()=> {
+    editInput.value[0].focus()
+  })
+  
+}
 
-// Clean up
-onUnmounted(() => {
-  stopInteraction();
-});
+function saveTaskEdit(task: Task) {
+  if (editingTaskId.value === null) return
+  if (editingContent.value.trim() !== '') {
+    boardStore.updateTask(props.list.id, task.task_id, editingContent.value)
+  }
+  editingTaskId.value = null
+  editingContent.value = ''
+}
+
+function cancelTaskEdit() {
+  editingTaskId.value = null
+  editingContent.value = ''
+}
 </script>
 
 <style scoped>
 .todo-list {
-  min-width: 200px;
+  min-width: 300px;
   min-height: 200px;
 }
 
@@ -187,30 +172,4 @@ onUnmounted(() => {
 .overflow-auto::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
-
-.resize-handles {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.resize-handle {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 50%;
-  pointer-events: all;
-  cursor: pointer;
-}
-
-.n { top: -5px; left: 50%; transform: translateX(-50%); cursor: n-resize; }
-.s { bottom: -5px; left: 50%; transform: translateX(-50%); cursor: s-resize; }
-.e { right: -5px; top: 50%; transform: translateY(-50%); cursor: e-resize; }
-.w { left: -5px; top: 50%; transform: translateY(-50%); cursor: w-resize; }
-.nw { top: -5px; left: -5px; cursor: nw-resize; }
-.ne { top: -5px; right: -5px; cursor: ne-resize; }
-.sw { bottom: -5px; left: -5px; cursor: sw-resize; }
-.se { bottom: -5px; right: -5px; cursor: se-resize; }
 </style>
