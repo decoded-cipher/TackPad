@@ -2,8 +2,6 @@
   <div
     class="w-full h-full flex flex-col relative"
     :style="{ backgroundColor: color }"
-    @keydown.meta.v.stop
-    @keydown.ctrl.v.stop
   >
     <ColorPicker
       v-model="color"

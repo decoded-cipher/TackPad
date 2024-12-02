@@ -209,13 +209,13 @@ const handleDelete = (e: KeyboardEvent) => {
 };
 
 const handlePaste = async (e: ClipboardEvent) => {
-  // Prevent default paste behavior
-  e.preventDefault();
-
   // Don't handle paste if we're in an input or textarea
   if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
     return;
   }
+
+  // Prevent default paste behavior
+  e.preventDefault();
 
   console.log("pasted");
   console.log(e);
