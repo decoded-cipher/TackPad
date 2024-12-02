@@ -2,6 +2,8 @@
   <div
     class="w-full h-full flex flex-col relative"
     :style="{ backgroundColor: color }"
+    @keydown.meta.v.stop
+    @keydown.ctrl.v.stop
   >
     <ColorPicker
       v-model="color"
@@ -14,8 +16,6 @@
       v-model="text"
       class="w-full h-full p-6 bg-transparent resize-none focus:outline-none text-xl font-medium leading-tight"
       placeholder="Enter your note"
-      @keydown.meta.v.stop
-      @keydown.ctrl.v.stop
       @input="updateText"
       @blur="isEditing = false"
       @mousedown.stop
