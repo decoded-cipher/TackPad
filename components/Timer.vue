@@ -64,7 +64,7 @@ const progressDasharray = computed(() =>
 
 // Timer methods
 const playNotification = () => {
-  const audio = new Audio('/api/placeholder-sound.mp3')
+  const audio = new Audio('/alarm.mp3')
   audio.play().catch(() => console.warn('Audio notification failed to play'))
 }
 
