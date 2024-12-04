@@ -57,7 +57,7 @@ export default defineEventHandler(async (event) => {
     // Define item dimensions
     const dimensions = {
       width: 300,
-      height: 200
+      height: 320
     };
 
     // Find available position
