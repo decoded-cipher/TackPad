@@ -96,6 +96,9 @@
       <button class="bg-white p-3 rounded-lg shadow-lg hover:bg-gray-50" @click.stop="addTextWidget">
         Add Text Widget
       </button>
+      <a :href="`javascript:(function()%7Bfetch('${apiURL}',%7Bmethod:'POST',body:JSON.stringify(%7Blink:window.location.href%7D),headers:%7B'Content-Type':'application/json'%7D%7D);%7D)();`" class="bg-white p-3 rounded-lg shadow-lg hover:bg-gray-50">
+        Bookmarklet
+      </a>
       <button class="bg-white p-3 rounded-lg shadow-lg hover:bg-gray-50" @click="showPasswordDialog">🔒</button>
     </div>
     <dialog class="p-4 w-80 md:w-96" ref="passwordRef">
@@ -140,6 +143,7 @@ definePageMeta({
 })
 
 const route = useRoute();
+const apiURL = `${useRequestURL().protocol}//${useRequestURL().host}/api/bookmark/${route.params.id}`;
 const boardStore = useBoardStore();
 
 // Initialize board
