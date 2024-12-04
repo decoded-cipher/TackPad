@@ -7,6 +7,18 @@ import { findAvailablePosition } from '~/server/utils/board';
 const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 10)
 
 export default defineEventHandler(async (event) => {
+  // Set CORS headers
+  setResponseHeaders(event, {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  });
+
+  // Handle OPTIONS request for CORS preflight
+  if (event.method === 'OPTIONS') {
+    return null;
+  }
+
   const boardId = event.context.params?.id;
 
   if (!boardId) {
