@@ -70,7 +70,7 @@ export default defineEventHandler(async (event) => {
     const linkItem: LinkItem = {
       id: `LINK-${nanoid()}`,
       kind: 'link',
-      content: metadataResult.data,
+      content: {...metadataResult.data, url: body.link},
       x_position: position.x,
       y_position: position.y,
       width: dimensions.width,
