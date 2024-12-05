@@ -44,7 +44,7 @@ const GRID_SIZE = 20; // Snap to grid size
 const MARGIN = 10; // Margin between items
 const INITIAL_OFFSET = 48; // Initial offset from top-left
 const MIN_ZOOM = 0.1; // Minimum zoom level
-const MAX_ZOOM = 2.0; // Maximum zoom level
+const MAX_ZOOM = 1.0; // Maximum zoom level
 const DEFAULT_PADDING = 0.1; // Default padding around items (10%)
 
 function doesItemOverlap(

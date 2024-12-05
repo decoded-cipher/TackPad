@@ -3,7 +3,7 @@ import { BOARDS } from '~/server/database/schema';
 import { useDrizzle } from '~/server/utils/drizzle';
 const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 10)
 export default defineEventHandler(async (event) => {
-  const id = event.context.params?.id;
+  const id = decodeURIComponent(event.context.params?.id || '');
   if (!id) {
     throw createError({
       statusCode: 400,
@@ -12,13 +12,23 @@ export default defineEventHandler(async (event) => {
   }
   const board = await useDrizzle().select().from(tables.BOARDS).where(eq(BOARDS.board_id, id)).limit(1)
   // For development, return a board with some initial items
-  const data = board[0] ?? await getWelcomeBoard()
+  const data = board[0] ?? await getWelcomeBoard(id)
   return data;
 });
 
-async function getWelcomeBoard() {
+function makeUrlSafe(str: string): string {
+  return str
+    .toLowerCase()
+    .replace(/\s+/g, '-')           // Replace spaces with hyphens
+    .replace(/[^\w\-]+/g, '')       // Remove all non-word chars except hyphens
+    .replace(/\-\-+/g, '-')         // Replace multiple hyphens with single hyphen
+    .replace(/^-+/, '')             // Trim hyphens from start
+    .replace(/-+$/, '');            // Trim hyphens from end
+}
+
+async function getWelcomeBoard(board_id: string) {
   const board = {
-    board_id: `BOARD-${nanoid(10)}`,
+    board_id: board_id === 'create' ? `BOARD-${nanoid(10)}` : makeUrlSafe(decodeURIComponent(board_id)),
     data: {
       items: [{
         id: `STICKY-${nanoid(10)}`,
