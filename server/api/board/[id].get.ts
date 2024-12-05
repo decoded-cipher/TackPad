@@ -12,13 +12,13 @@ export default defineEventHandler(async (event) => {
   }
   const board = await useDrizzle().select().from(tables.BOARDS).where(eq(BOARDS.board_id, id)).limit(1)
   // For development, return a board with some initial items
-  const data = board[0] ?? await getWelcomeBoard()
+  const data = board[0] ?? await getWelcomeBoard(id)
   return data;
 });
 
-async function getWelcomeBoard() {
+async function getWelcomeBoard(board_id: string) {
   const board = {
-    board_id: `BOARD-${nanoid(10)}`,
+    board_id: board_id == 'create' ? `BOARD-${nanoid(10)}` : board_id,
     data: {
       items: [{
         id: `STICKY-${nanoid(10)}`,
