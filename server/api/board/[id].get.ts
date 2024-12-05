@@ -3,7 +3,7 @@ import { BOARDS } from '~/server/database/schema';
 import { useDrizzle } from '~/server/utils/drizzle';
 const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 10)
 export default defineEventHandler(async (event) => {
-  const id = event.context.params?.id;
+  const id = decodeURIComponent(event.context.params?.id || '');
   if (!id) {
     throw createError({
       statusCode: 400,
@@ -28,7 +28,7 @@ function makeUrlSafe(str: string): string {
 
 async function getWelcomeBoard(board_id: string) {
   const board = {
-    board_id: board_id == 'create' ? `BOARD-${nanoid(10)}` : makeUrlSafe(board_id),
+    board_id: board_id === 'create' ? `BOARD-${nanoid(10)}` : makeUrlSafe(decodeURIComponent(board_id)),
     data: {
       items: [{
         id: `STICKY-${nanoid(10)}`,
