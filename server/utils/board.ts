@@ -12,7 +12,7 @@ interface Position {
 
 const GRID_SIZE = 20; // Snap to grid size
 const MARGIN = 10; // Margin between items
-const INITIAL_OFFSET = 20; // Initial offset from top-left
+const INITIAL_OFFSET = 48; // Initial offset from top-left
 
 function doesItemOverlap(
   position: Position,

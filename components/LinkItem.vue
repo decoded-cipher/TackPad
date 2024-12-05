@@ -11,7 +11,8 @@
       <div v-else class="w-full h-32 bg-gray-100 rounded-md flex items-center justify-center">
         <div class="text-4xl text-gray-400">🔗</div>
       </div>
-      <h3 class="mt-3 font-medium text-gray-800 text-lg">{{ item.content.title }}</h3>
+      <h3 class="mt-3 font-medium text-gray-800 text-lg"><a 
+        :href="item.content.url"> {{ item.content.title }} </a></h3>
       <p v-if="item.content.description === 'Loading metadata...'" class="mt-2 text-sm text-gray-500 flex items-center gap-2">
         <span class="inline-block w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></span>
         {{ item.content.description }}
@@ -24,7 +25,7 @@
         target="_blank"
         @mousedown.stop
       >
-        {{ getHostname(item.content.url) }}
+        {{ getHostname(item.content.url) }} ↗
       </a>
     </template>
 

@@ -96,7 +96,7 @@
       <button class="bg-white p-3 rounded-lg shadow-lg hover:bg-gray-50" @click.stop="addTextWidget">
         Add Text Widget
       </button>
-      <a :href="getBookMarkURL()" class="bg-white p-3 rounded-lg shadow-lg hover:bg-gray-50">
+      <a @click.prevent :href="getBookMarkURL()" class="bg-white p-3 rounded-lg shadow-lg hover:bg-gray-50">
         Bookmarklet
       </a>
       <button class="bg-white p-3 rounded-lg shadow-lg hover:bg-gray-50" @click="showPasswordDialog">🔒</button>
