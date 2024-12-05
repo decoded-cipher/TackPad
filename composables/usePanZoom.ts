@@ -2,6 +2,9 @@ import { ref, computed } from 'vue';
 import { useEventListener } from '@vueuse/core';
 import { useGesture } from './useGesture';
 
+const MIN_ZOOM = 0.25;
+const MAX_ZOOM = 1;
+
 export function usePanZoom() {
   const scale = ref(1);
   const translateX = ref(0);
@@ -21,8 +24,11 @@ export function usePanZoom() {
   };
 
   const updateZoom = (delta: number, centerX: number, centerY: number) => {
-    const newScale = Math.min(Math.max(0.25, scale.value * delta), 5);
+    const newScale = Math.min(Math.max(MIN_ZOOM, scale.value * delta), MAX_ZOOM);
     
+    // Only update if the new scale is within bounds
+    if (newScale === scale.value) return;
+    console.log('Zooming', newScale);
     const zoomPoint = {
       x: (centerX - translateX.value) / scale.value,
       y: (centerY - translateY.value) / scale.value
@@ -84,6 +90,26 @@ export function usePanZoom() {
     gesture.end();
   };
 
+  const handleKeyboardZoom = (e: KeyboardEvent) => {
+    // Ignore if user is typing in an input field
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+    const key = e.key;
+    if (key === '+' || key === '=') {
+      e.preventDefault();
+      // Zoom in - use center of the viewport as the zoom point
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      updateZoom(1.1, centerX, centerY);
+    } else if (key === '-' || key === '_') {
+      e.preventDefault();
+      // Zoom out - use center of the viewport as the zoom point
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      updateZoom(0.9, centerX, centerY);
+    }
+  };
+
   // Set up event listeners
   useEventListener(window, 'mousemove', pan);
   useEventListener(window, 'touchmove', pan, { passive: false });
@@ -91,6 +117,7 @@ export function usePanZoom() {
   useEventListener(window, 'mouseleave', endPan);
   useEventListener(window, 'touchend', endPan);
   useEventListener(window, 'touchcancel', endPan);
+  useEventListener(window, 'keydown', handleKeyboardZoom);
 
   return {
     scale,
@@ -101,5 +128,6 @@ export function usePanZoom() {
     pan,
     endPan,
     handleZoom,
+    updateZoom,
   };
 }

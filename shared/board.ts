@@ -1,4 +1,4 @@
-import { Board, BoardItem } from '~/types/board';
+import type { Board, BoardItem } from '~/types/board';
 
 /**
  * Represents the dimensions of an item on the board
