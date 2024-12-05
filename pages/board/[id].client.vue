@@ -137,6 +137,8 @@ import Timer from '~/components/Timer.vue'
 import TextWidget from '~/components/TextWidget.vue'
 import { usePanZoom } from '~/composables/usePanZoom';
 import { useBoardStore } from '~/stores/board';
+import { calculateBoardBounds, calculateOptimalZoom, calculateBoardCenter } from '~/shared/board';
+import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 
 definePageMeta({
   alias: '/'
@@ -144,6 +146,34 @@ definePageMeta({
 
 const route = useRoute();
 const boardStore = useBoardStore();
+const boardRef = ref<HTMLElement | null>(null);
+
+/**
+ * Calculates and applies the optimal zoom level to show all items
+ */
+function applyOptimalZoom() {
+  if (!boardStore.board?.data.items || !boardRef.value) return;
+
+  const bounds = calculateBoardBounds(boardStore.board.data.items);
+  const viewport = {
+    width: boardRef.value.clientWidth,
+    height: boardRef.value.clientHeight
+  };
+  
+  // Calculate optimal zoom and center position
+  const optimalZoom = calculateOptimalZoom(bounds, viewport);
+  const center = calculateBoardCenter(bounds);
+  
+  // Set zoom level
+  scale.value = optimalZoom;
+  
+  // Center the board on the items
+  translateX.value = viewport.width / 2 - center.x * optimalZoom;
+  translateY.value = viewport.height / 2 - center.y * optimalZoom;
+  
+  // Update board store
+  boardStore.setScale(optimalZoom);
+}
 
 // Initialize board
 onMounted(async () => {
@@ -151,6 +181,18 @@ onMounted(async () => {
   await boardStore.initializeBoard(boardId);
   // Clear selection on mount
   boardStore.setSelectedId(null);
+  
+  // Calculate and set optimal zoom level after board is initialized
+  nextTick(applyOptimalZoom);
+});
+
+// Recalculate zoom when window is resized
+onMounted(() => {
+  window.addEventListener('resize', applyOptimalZoom);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', applyOptimalZoom);
 });
 
 // Pan and zoom functionality

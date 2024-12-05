@@ -3,7 +3,7 @@ import { BOARDS } from '~/server/database/schema';
 import { Board, LinkItem } from '~/types/board';
 import { eq } from 'drizzle-orm';
 import { fetchMetadata, isValidUrl } from '~/server/utils/extractUrlFromRequest';
-import { findAvailablePosition } from '~/server/utils/board';
+import { findAvailablePosition } from '~/shared/board';
 const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 10)
 
 export default defineEventHandler(async (event) => {
