@@ -314,6 +314,18 @@ export const useBoardStore = defineStore('board', () => {
       await debouncedSaveBoard()
     }
   }
+  const deleteTask = async (listId: string, taskId: string) => {
+    if (!board.value) return
+
+    const list = board.value.data.items.find(item => 
+      item.id === listId && item.kind === 'todo'
+    ) as TodoList | undefined
+    
+    if (!list) return
+
+    list.content.tasks = list.content.tasks.filter(task => task.task_id !== taskId)
+    await debouncedSaveBoard()
+  }
 
   const addTextWidget = (
     position: { x: number; y: number; width?: number; height?: number }
@@ -384,6 +396,7 @@ export const useBoardStore = defineStore('board', () => {
     addTextWidget,
     addTask,
     updateTask,
+    deleteTask,
     saveBoard,
   }
 })

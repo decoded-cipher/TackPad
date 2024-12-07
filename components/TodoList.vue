@@ -76,6 +76,14 @@
           >
             {{ task.content }}
           </span>
+          <span>
+            <button 
+              @click.stop="deleteTask(task)"
+              class="text-red-500 hover:text-red-600"
+            >
+              <span class="text-2xl">×</span>
+            </button>
+          </span>
         </li>
       </ul>
     </div>
@@ -113,6 +121,9 @@ function addNewTask() {
   if (!newTask.value.trim()) return
   boardStore.addTask(props.list.id, newTask.value)
   newTask.value = ''
+}
+function deleteTask(task: Task) {
+  boardStore.deleteTask(props.list.id, task.task_id)
 }
 
 function toggleTask(task: Task) {
