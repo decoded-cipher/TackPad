@@ -17,7 +17,7 @@
         <div 
           v-else 
           class="w-full cursor-pointer break-words"
-          @dblclick="startTitleEdit"
+          @click="startTitleEdit"
         >
           <p 
             class="font-semibold px-1 transition-all duration-200"
