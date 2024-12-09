@@ -21,7 +21,7 @@
     />
     <div
       v-else
-      class="w-full h-full p-6 text-xl font-medium leading-tight whitespace-pre-wrap"
+      class="w-full h-full p-6 text-xl font-medium leading-tight whitespace-pre-wrap overflow-auto"
       @dblclick.stop="startEditing"
     >
       {{ text || "Enter your note" }}
