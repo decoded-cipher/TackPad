@@ -51,6 +51,7 @@ export function usePanZoom() {
 
   const handleKeyUp = (e: KeyboardEvent) => {
     if (e.code === 'Space') {
+      if(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
       e.preventDefault();
       isSpacePressed.value = false;
       document.body.style.cursor = 'default';
