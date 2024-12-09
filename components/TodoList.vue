@@ -53,10 +53,10 @@
         <li 
           v-for="task in list.content.tasks" 
           :key="task.task_id" 
-          class="flex items-center gap-3"
+          class="flex gap-3"
         >
           <button 
-            class="w-6 h-6 rounded border-2 border-blue-600 flex items-center justify-center"
+            class="w-6 h-6 rounded border-2 border-blue-600 flex items-center justify-center flex-shrink-0"
             :class="{ 'bg-blue-600': task.completed }"
             @click.stop="toggleTask(task)"
           >
