@@ -1,5 +1,6 @@
 <template>
   <div
+    @wheel.stop
     ref="itemRef"
     class="board-item absolute  rounded-lg"
     :class="{ 
