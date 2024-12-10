@@ -35,9 +35,6 @@ dependencies:
   pinia:
     specifier: ^2.1.7
     version: 2.2.8(typescript@5.7.2)(vue@3.5.13)
-  vue-draggable-next:
-    specifier: ^2.2.1
-    version: 2.2.1(sortablejs@1.15.6)(vue@3.5.13)
   vue3-sortablejs:
     specifier: ^1.0.7
     version: 1.0.7
@@ -6799,10 +6796,6 @@ packages:
     resolution: {integrity: sha512-bv9qgVMjUMf89wAvM6AxVvS/4MX3sPeN0+agqShejLU5z5GX4C75ow1O2e5k4L6XItUyAK3gH6AxSbXrOM5e8w==}
     dev: false
 
-  /sortablejs@1.15.6:
-    resolution: {integrity: sha512-aNfiuwMEpfBM/CN6LY0ibyhxPfPbyFeBTYJKCvzkJ2GkUpazIt3H+QIPAMHwqQ7tMKaHz1Qj+rJJCqljnf4p3A==}
-    dev: false
-
   /source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
     engines: {node: '>=0.10.0'}
@@ -7676,16 +7669,6 @@ packages:
 
   /vue-devtools-stub@0.1.0:
     resolution: {integrity: sha512-RutnB7X8c5hjq39NceArgXg28WZtZpGc3+J16ljMiYnFhKvd8hITxSWQSQ5bvldxMDU6gG5mkxl1MTQLXckVSQ==}
-    dev: false
-
-  /vue-draggable-next@2.2.1(sortablejs@1.15.6)(vue@3.5.13):
-    resolution: {integrity: sha512-EAMS1IRHF0kZO0o5PMOinsQsXIqsrKT1hKmbICxG3UEtn7zLFkLxlAtajcCcUTisNvQ6TtCB5COjD9a1raNADw==}
-    peerDependencies:
-      sortablejs: ^1.14.0
-      vue: ^3.2.2
-    dependencies:
-      sortablejs: 1.15.6
-      vue: 3.5.13(typescript@5.7.2)
     dev: false
 
   /vue-router@4.5.0(vue@3.5.13):
