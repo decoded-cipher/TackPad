@@ -38,6 +38,9 @@ dependencies:
   vue-draggable-next:
     specifier: ^2.2.1
     version: 2.2.1(sortablejs@1.15.6)(vue@3.5.13)
+  vue3-sortablejs:
+    specifier: ^1.0.7
+    version: 1.0.7
 
 devDependencies:
   '@types/lodash':
@@ -6792,6 +6795,10 @@ packages:
     resolution: {integrity: sha512-g6T+p7QO8npa+/hNx9ohv1E5pVCmWrVCUzUXJyLdMmftX6ER0oiWY/w9knEonLpnOp6b6FenKnMfR8gqwWdwig==}
     dev: false
 
+  /sortablejs@1.15.0:
+    resolution: {integrity: sha512-bv9qgVMjUMf89wAvM6AxVvS/4MX3sPeN0+agqShejLU5z5GX4C75ow1O2e5k4L6XItUyAK3gH6AxSbXrOM5e8w==}
+    dev: false
+
   /sortablejs@1.15.6:
     resolution: {integrity: sha512-aNfiuwMEpfBM/CN6LY0ibyhxPfPbyFeBTYJKCvzkJ2GkUpazIt3H+QIPAMHwqQ7tMKaHz1Qj+rJJCqljnf4p3A==}
     dev: false
@@ -7688,6 +7695,12 @@ packages:
     dependencies:
       '@vue/devtools-api': 6.6.4
       vue: 3.5.13(typescript@5.7.2)
+    dev: false
+
+  /vue3-sortablejs@1.0.7:
+    resolution: {integrity: sha512-Mk67J+TxM1+/clI++inBXE4SpZHMOfXjgrOPcth6cRg8b4/GtrjhYEJsDxXnwzJchXFl9sJbPOJSiyVlEaz+2Q==}
+    dependencies:
+      sortablejs: 1.15.0
     dev: false
 
   /vue@3.5.13(typescript@5.7.2):

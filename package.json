@@ -21,7 +21,7 @@
     "nanoid": "^5.0.9",
     "nuxt": "^3.13.0",
     "pinia": "^2.1.7",
-    "vue-draggable-next": "^2.2.1"
+    "vue3-sortablejs": "^1.0.7"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.13",

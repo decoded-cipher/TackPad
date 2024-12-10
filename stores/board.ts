@@ -23,9 +23,7 @@ export const useBoardStore = defineStore('board', () => {
       if (!response.ok) throw new Error('Failed to load board')
       const raw = await response.json()
       if(raw.data.encrypted){
-        console.log('encrypted')
         if(!password.value){
-          console.log('no password')
           await usePasswordModal().showPasswordDialog()
         }
           try{
@@ -142,8 +140,6 @@ export const useBoardStore = defineStore('board', () => {
     position: { x: number; y: number; width: number; height: number }
   ): Promise<LinkItem | null> => {
     if (!board.value) return null;
-    console.log("addLinkItem")
-
     // Create initial link item immediately
     const hostname = new URL(link).hostname;
     const initialLinkItem: LinkItem = {
@@ -206,10 +202,6 @@ export const useBoardStore = defineStore('board', () => {
             width: position.width,
             height: position.height
           };
-  
-      console.log("Updating with metadata:", { content: updatedContent, ...updatedDimensions });
-      console.log(data);
-
       // Find and update the link item
       const itemIndex = board.value.data.items.findIndex(item => item.id === initialLinkItem.id);
       if (itemIndex !== -1) {
@@ -227,8 +219,6 @@ export const useBoardStore = defineStore('board', () => {
   
     } catch (error) {
       console.error('Error adding link item:', error);
-      console.log("fallback");
-
       // Update the initial link item with final fallback content
       const itemIndex = board.value.data.items.findIndex(item => item.id === initialLinkItem.id);
       if (itemIndex !== -1) {
@@ -327,6 +317,18 @@ export const useBoardStore = defineStore('board', () => {
     await debouncedSaveBoard()
   }
 
+  const moveTask = async (listId: string, oldIndex: number, newIndex: number) => {
+    if (!board.value) return
+
+    const list = board.value.data.items.find(item => 
+      item.id === listId && item.kind === 'todo'
+    ) as TodoList | undefined
+    if (!list) return
+
+    list.content.tasks[newIndex] = list.content.tasks.splice(oldIndex, 1)[0]
+    await debouncedSaveBoard()
+  }
+
   const addTextWidget = (
     position: { x: number; y: number; width?: number; height?: number }
   ) => {
@@ -355,7 +357,6 @@ export const useBoardStore = defineStore('board', () => {
     let encrypted: EncryptedData = null!;
     if(password.value)
     encrypted = await encrypt(data, password.value)
-  console.log({encrypted})
     try {
       const response = await fetch(`/api/save/${board_id}`, {
         method: 'POST',
@@ -397,6 +398,7 @@ export const useBoardStore = defineStore('board', () => {
     addTask,
     updateTask,
     deleteTask,
+    moveTask,
     saveBoard,
   }
 })

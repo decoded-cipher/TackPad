@@ -48,13 +48,14 @@
           <span class="text-3xl">+</span>
         </button>
       </div>
-
-      <ul class="space-y-4 overflow-y-auto">
+      <div @mousemove.stop @mouseup.stop @mousedown.stop>
+        <ul v-sortable="{options:{handle:'.todo-handle'}}" class="space-y-4 overflow-y-auto" @end="onOrderChange">
         <li 
           v-for="task in list.content.tasks" 
           :key="task.task_id" 
           class="flex gap-3"
         >
+          <span class="todo-handle text-gray-400">⋮⋮</span>
           <button 
             class="w-6 h-6 rounded border-2 border-blue-600 flex items-center justify-center flex-shrink-0"
             :class="{ 'bg-blue-600': task.completed }"
@@ -103,7 +104,10 @@
             </button>
           </span>
         </li>
+        <li v-if="list.content.tasks.length === 0" class="text-gray-400 text-sm text-center p-4">No tasks added yet</li>
       </ul>
+      </div>
+      
     </div>
   </div>
 </template>
@@ -217,6 +221,11 @@ function cancelTaskEdit() {
   editingTaskId.value = null
   editingContent.value = ''
 }
+
+function onOrderChange({oldIndex, newIndex}: {oldIndex: number, newIndex: number}) {
+      if (oldIndex === newIndex) return
+      boardStore.moveTask(props.list.id, oldIndex, newIndex)
+    }
 </script>
 
 <style scoped>
