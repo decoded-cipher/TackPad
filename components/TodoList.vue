@@ -91,6 +91,7 @@
             v-else
             class="flex-grow cursor-pointer"
             :class="{ 'line-through text-gray-400': task.completed }"
+            @click.stop="toggleTask(task)"
             @dblclick.stop="startEditing(task)"
           >
             {{ task.content }}

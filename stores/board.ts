@@ -325,7 +325,9 @@ export const useBoardStore = defineStore('board', () => {
     ) as TodoList | undefined
     if (!list) return
 
-    list.content.tasks[newIndex] = list.content.tasks.splice(oldIndex, 1)[0]
+    let item = list.content.tasks.splice(oldIndex, 1)[0];
+    console.log({item, tasks: list.content.tasks, oldIndex, newIndex});
+    list.content.tasks.splice(newIndex, 0, item);
     await debouncedSaveBoard()
   }
 
