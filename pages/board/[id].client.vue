@@ -83,46 +83,46 @@
     </div>
 
     <!-- Fixed Controls -->
-    <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 flex items-center bg-white rounded-xl shadow-lg px-4 py-2 gap-6">
+    <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 flex items-center bg-white rounded-xl shadow-lg px-2 sm:px-4 py-1 sm:py-2 gap-2 sm:gap-6">
       <button 
-        class="p-2 text-gray-600 hover:text-green-600 hover:bg-gray-50 rounded-full transition-colors"
+        class="p-1.5 sm:p-2 text-gray-600 hover:text-green-600 hover:bg-gray-50 rounded-full transition-colors"
         @click.stop="addTodoList"
         title="Add Todo List"
       >
-        <img src="/icons/todo.svg" class="h-6 w-6" alt="Todo List" />
+        <img src="/icons/todo.svg" class="h-5 w-5 sm:h-6 sm:w-6" alt="Todo List" />
       </button>
       
       <button 
-        class="p-2 text-gray-600 hover:text-yellow-600 hover:bg-gray-50 rounded-full transition-colors"
+        class="p-1.5 sm:p-2 text-gray-600 hover:text-yellow-600 hover:bg-gray-50 rounded-full transition-colors"
         @click.stop="addNote"
         title="Add Note"
       >
-        <img src="/icons/notes.svg" class="h-6 w-6" alt="Notes" />
+        <img src="/icons/notes.svg" class="h-5 w-5 sm:h-6 sm:w-6" alt="Notes" />
       </button>
       
       <button 
-        class="p-2 text-gray-600 hover:text-purple-600 hover:bg-gray-50 rounded-full transition-colors"
+        class="p-1.5 sm:p-2 text-gray-600 hover:text-purple-600 hover:bg-gray-50 rounded-full transition-colors"
         @click.stop="addTextWidget"
         title="Add Text Widget"
       >
-        <img src="/icons/text.svg" class="h-6 w-6" alt="Text Widget" />
+        <img src="/icons/text.svg" class="h-5 w-5 sm:h-6 sm:w-6" alt="Text Widget" />
       </button>
       
       <button 
-        class="p-2 text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-full transition-colors"
+        class="p-1.5 sm:p-2 text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-full transition-colors"
         @click.stop="addTimer"
         title="Add Timer"
       >
-        <img src="/icons/timer.svg" class="h-6 w-6" alt="Timer" />
+        <img src="/icons/timer.svg" class="h-5 w-5 sm:h-6 sm:w-6" alt="Timer" />
       </button>
 
       <a 
         @click.prevent 
         :href="getBookMarkURL()" 
-        class="p-2 text-gray-600 hover:text-red-600 hover:bg-gray-50 rounded-full transition-colors cursor-pointer"
+        class="p-1.5 sm:p-2 text-gray-600 hover:text-red-600 hover:bg-gray-50 rounded-full transition-colors cursor-pointer"
         title="Add Bookmark"
       >
-        <img src="/icons/bookmark.svg" class="h-6 w-6" alt="Bookmark" />
+        <img src="/icons/bookmark.svg" class="h-5 w-5 sm:h-6 sm:w-6" alt="Bookmark" />
       </a>
     </div>
     <dialog class="p-4 w-80 md:w-96" ref="passwordRef">
