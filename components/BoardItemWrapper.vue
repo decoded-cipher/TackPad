@@ -11,7 +11,7 @@
     }"
     :style="[
       style,
-      { touchAction: 'none' }
+      { touchAction: 'none', viewTransitionName: isSelected && 'selected-widget' }
     ]"
     @mousedown.stop="startMove"
     @touchstart.stop.prevent="startMove"
@@ -79,6 +79,7 @@ const resizeHandles = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']
 </script>
 
 <style scoped>
+
 .board-item {
   /* background: white; */
   z-index: 10;
