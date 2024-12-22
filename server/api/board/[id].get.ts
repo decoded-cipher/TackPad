@@ -30,6 +30,7 @@ async function getWelcomeBoard(board_id: string) {
   const board = {
     board_id: board_id === 'create' ? `BOARD-${nanoid(10)}` : makeUrlSafe(decodeURIComponent(board_id)),
     data: {
+      title: 'Untitled TackPad',
       items: [{
         id: `STICKY-${nanoid(10)}`,
         kind: 'note',

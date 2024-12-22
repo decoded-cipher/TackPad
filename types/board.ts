@@ -72,6 +72,7 @@ export type BoardItem = StickyNote | TodoList | LinkItem | TimerItem | TextWidge
 export interface Board {
   board_id: string;
   data: {
+    title?: string;
     items: BoardItem[];
   }
 }

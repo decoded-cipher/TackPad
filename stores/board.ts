@@ -4,6 +4,13 @@ import { customAlphabet } from 'nanoid'
 import { debounce } from 'lodash'
 
 import type { Board, BoardItem, StickyNote, TodoList, Task, LinkItem, TimerItem, TextWidget } from '~/types/board'
+import { useLocalStorage } from '@vueuse/core'
+type Boards = {
+  [key: string]: {
+    board_id: string
+    title: string
+  }
+}
 
 const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 10)
 
@@ -15,9 +22,12 @@ export const useBoardStore = defineStore('board', () => {
   const selectedId = ref<string | null>(null)
   const scale = ref(1)
   const password = ref(null)
+  const boards = useLocalStorage<Boards>('boards', {})
+  console.log(boards)
   // Actions
   const initializeBoard = async (boardId: string = 'create') => {
     loading.value = true
+
     try {
       const response = await fetch(`/api/board/${boardId}`)
       if (!response.ok) throw new Error('Failed to load board')
@@ -39,6 +49,7 @@ export const useBoardStore = defineStore('board', () => {
         board.value = raw
       }
       const route = useRoute()
+      boards.value[board.value!.board_id] = {board_id: board.value!.board_id, title: board.value?.data.title || 'New TackPad'}
       if(route.params.id !== board.value?.board_id){
         await navigateTo(`/board/${board.value?.board_id}`)
       }
@@ -349,8 +360,16 @@ export const useBoardStore = defineStore('board', () => {
     return textWidget
   }
 
+  const setBoardTitle = (title: string) => {
+    if (!board.value) return
+    board.value.data.title = title
+    boards.value[board.value.board_id].title = title
+    debouncedSaveBoard()
+  }
+
   const saveBoard = async () => {
     if (!board.value) return
+
     let {data, board_id } = unref(board.value)
     let encrypted: EncryptedData = null!;
     if(password.value)
@@ -360,7 +379,7 @@ export const useBoardStore = defineStore('board', () => {
       const response = await fetch(`/api/save/${board_id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({board_id, data:encrypted || data }),
+        body: JSON.stringify({board_id,data:encrypted || data }),
       })
 
       if (!response.ok) throw new Error('Failed to save board')
@@ -372,7 +391,9 @@ export const useBoardStore = defineStore('board', () => {
 
   // Create debounced version of saveBoard
   const debouncedSaveBoard = debounce(saveBoard, 1000)
-  
+  useHead({
+    title: computed(() => `${(board.value?.data.title || 'TackPad')} | TackPad`),
+  })
 
   return {
     // State
@@ -397,6 +418,8 @@ export const useBoardStore = defineStore('board', () => {
     addTask,
     updateTask,
     deleteTask,
+    setBoardTitle,
     saveBoard,
+    boards:readonly(boards),
   }
 })
