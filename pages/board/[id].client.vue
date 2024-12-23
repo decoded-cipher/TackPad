@@ -113,6 +113,7 @@
       </div>
       <div class="items py-2  flex flex-col gap-2" v-if="isBoardListOpen">
         <div class="text-sm cursor-pointer" v-for="board in boardStore.boards" @click="boardStore.initializeBoard(board.board_id)">{{ board.title }}</div>
+        <NuxtLink class="text-sm cursor-pointer flex gap-2 text-blue-500" to="/board/create">Create New TackPad +</NuxtLink>
       </div>
     </div>
     <!-- Fixed Controls -->
