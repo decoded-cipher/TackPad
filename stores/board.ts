@@ -3,13 +3,12 @@ import { ref, computed, unref } from 'vue'
 import { defineStore } from 'pinia'
 import { useLocalStorage } from '@vueuse/core'
 import { debounce } from 'lodash'
-import { useHead } from '#imports'
 import { useRoute } from 'vue-router'
 
+// import type { EncryptedData } from '~/types/encryption'
 import type { Board, BoardItem, Boards } from '~/types/board'
 import { usePasswordDialog } from '~/composables/usePasswordDialog'
 import { decrypt, encrypt } from '~/utils/crypto'
-import type { EncryptedData } from '~/types/encryption'
 
 export const useBoardStore = defineStore('board', () => {
   // State
@@ -23,6 +22,8 @@ export const useBoardStore = defineStore('board', () => {
 
   // Actions
   const initializeBoard = async (boardId: string = 'create') => {
+
+    const route = useRoute()
     loading.value = true
 
     try {
@@ -43,14 +44,16 @@ export const useBoardStore = defineStore('board', () => {
       } else {
         board.value = raw
       }
-      const route = useRoute()
+
       boards.value[board.value!.board_id] = {
         board_id: board.value!.board_id, 
         title: board.value?.data.title || 'New TackPad'
       }
+  
       if(route.params.id !== board.value?.board_id){
         await navigateTo(`/board/${board.value?.board_id}`)
       }
+      
     } catch (err) {
       error.value = 'Failed to load board'
       console.error(err)
@@ -88,7 +91,7 @@ export const useBoardStore = defineStore('board', () => {
     if (!board.value) return
 
     let {data, board_id} = unref(board.value)
-    let encrypted: EncryptedData | null = null;
+    let encrypted: any | null = null;
     
     if(password.value) {
       encrypted = await encrypt(data, password.value)
@@ -114,7 +117,10 @@ export const useBoardStore = defineStore('board', () => {
   useHead({
     title: computed(() => `${(board.value?.data.title || 'TackPad')} | TackPad`),
   })
-
+  // initializeBoard()
+  // if (useRoute().path === '/') {
+  //   initializeBoard()
+  // }
   return {
     // State
     board,

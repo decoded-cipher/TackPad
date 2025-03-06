@@ -1,7 +1,7 @@
 // stores/todoStore.ts
 import { defineStore } from 'pinia'
 import { customAlphabet } from 'nanoid'
-import { useBoardStore } from './boardStore'
+import { useBoardStore } from './board'
 import type { TodoList, Task, Position } from '~/types/board'
 
 const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 10)

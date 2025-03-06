@@ -1,13 +1,22 @@
 
 import { useBoardStore } from '~/stores/board';
+import {useNoteStore} from '~/stores/noteStore'
+import {useTodoStore} from '~/stores/todoStore'
+import {useTimerStore} from '~/stores/timerStore'
+import {useTextWidgetStore} from '~/stores/textWidgetStore'
+import { useItemStore } from '~/stores/itemStore';
 import { nanoid } from 'nanoid';
 
 export function useItemManagement() {
   const boardStore = useBoardStore();
-
+    const noteStore = useNoteStore();
+    const todoStore = useTodoStore();
+    const timerStore = useTimerStore();
+    const textWidgetStore=useTextWidgetStore()
+    const itemStore = useItemStore()
   const addNote = () => {
     const position = calculateCenterPosition(300, 200);
-    return boardStore.addNote('New note...', {
+    return noteStore.addNote('New note...', {
       x: position.x,
       y: position.y,
       color: 'yellow',
@@ -18,7 +27,7 @@ export function useItemManagement() {
 
   const addTodoList = () => {
     const position = calculateCenterPosition(300, 300);
-    return boardStore.addTodoList({
+    return todoStore.addTodoList({
       x: position.x,
       y: position.y,
       width: 300,
@@ -28,7 +37,7 @@ export function useItemManagement() {
 
   const addTimer = () => {
     const position = calculateCenterPosition(300, 150);
-    return boardStore.addTimer({
+    return timerStore.addTimer({
       x: position.x,
       y: position.y,
       width: 300,
@@ -38,7 +47,7 @@ export function useItemManagement() {
 
   const addTextWidget = () => {
     const position = calculateCenterPosition(300, 100);
-    return boardStore.addTextWidget({
+    return textWidgetStore.addTextWidget({
       x: position.x,
       y: position.y,
       width: 300,
@@ -58,7 +67,7 @@ export function useItemManagement() {
     itemId: string,
     updates: { x?: number; y?: number; width?: number; height?: number }
   ) => {
-    boardStore.updateItem(itemId, updates);
+    itemStore.updateItem(itemId, updates);
   };
 
   // Helper function to calculate center position

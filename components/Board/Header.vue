@@ -24,7 +24,7 @@
           v-else 
           autofocus 
           :value="boardStore.board?.data.title || 'New TackPad'" 
-          @blur="(e) => saveTitle(e.target.value)"
+          @blur="(e: FocusEvent) => saveTitle((e.target as HTMLInputElement).value)"
         />
       </div>
       <div class="items py-2 flex flex-col gap-2" v-if="isBoardListOpen">

@@ -1,20 +1,90 @@
+<script setup lang="ts">
+import { onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
+import BoardItemWrapper from "~/components/BoardItemWrapper.vue";
 
+// Import stores
+import { useBoardStore } from "~/stores/board";
+import { useItemStore } from "~/stores/itemStore";
+import { useNoteStore } from "~/stores/noteStore";
+import { useTodoStore } from "~/stores/todoStore";
+import { useLinkStore } from "~/stores/linkStore";
+import { useTimerStore } from "~/stores/timerStore";
+import { useTextWidgetStore } from "~/stores/textWidgetStore";
+
+import { usePanZoom } from "~/composables/usePanZoom";
+import { useGlobalShortcuts } from "~/composables/useGlobalShortcuts";
+import { useClipboard } from "~/composables/useClipboard";
+import { applyOptimalZoom } from "~/utils/boardUtils";
+
+// Initialize stores
+const boardStore = useBoardStore();
+const itemStore = useItemStore();
+const noteStore = useNoteStore();
+const todoStore = useTodoStore();
+const linkStore = useLinkStore();
+const timerStore = useTimerStore();
+const textWidgetStore = useTextWidgetStore();
+
+// Initialize composables
+const route = useRoute();
+const { scale, translateX, translateY, startPan, pan, endPan, handleZoom, updateZoom, spacePressed, isPanning } = usePanZoom();
+const { handlePaste } = useClipboard();
+
+const boardRef = ref<HTMLElement | null>(null);
+
+// Handle delete function for global shortcuts
+const handleDelete = () => {
+  boardStore.deleteSelected();
+};
+
+// Initialize board
+onMounted(async () => {
+  await boardStore.initializeBoard(route.params.id as string);
+  
+  // Apply optimal zoom after board is loaded
+  if (boardStore.board?.data.items) {
+    // Create a function to set the translation directly
+    const setTranslate = (x: number, y: number) => {
+      translateX.value = x;
+      translateY.value = y;
+    };
+    
+    // Pass the setTranslate function to applyOptimalZoom
+    applyOptimalZoom(boardStore.board.data.items, updateZoom, setTranslate);
+  }
+  
+  // Ensure the board element has focus to capture keyboard events
+  boardRef.value?.focus();
+});
+
+// Initialize global shortcuts
+useGlobalShortcuts({
+  handleDelete,
+  handlePaste
+});
+
+// Update item position (used in the template)
+const updateItemPosition = (itemId: string, updates: { x?: number; y?: number; width?: number; height?: number }) => {
+  itemStore.updateItemPosition(itemId, updates);
+};
+
+definePageMeta({
+  alias: '/'
+})
+
+</script>
 <template>
  <div
     ref="boardRef"
     class="board fixed inset-0 bg-gray-100 bg-[radial-gradient(circle_at_1px_1px,#D1D5DB_1px,transparent_1px)] bg-[size:24px_24px] overflow-hidden"
-    :style="{ touchAction: 'none' }"
+    :style="{ touchAction: 'none', cursor: spacePressed ? 'grab' : 'default' }"
     @mousedown.stop="startPan"
-    @touchstart.stop.prevent="startPan"
-    @touchmove.prevent.stop="pan"
-    @touchend.stop.prevent="endPan"
-    @touchcancel.stop.prevent="endPan"
-    @wheel.prevent="pan"
-    @mousemove.prevent="pan"
-    @mouseup="endPan"
-    @mouseleave="endPan"
+    @mousemove.stop="pan"
+    @mouseup.stop="endPan"
+    @mouseleave.stop="endPan"
     @wheel.ctrl.prevent="handleZoom"
-    @click="boardStore.setSelectedId(null)"
+    @click.stop="(e: MouseEvent) => e.target === e.currentTarget && boardStore.setSelectedId(null)"
     tabindex="0"
   >
     <div
@@ -27,6 +97,10 @@
         top: '-10000px',
         willChange: 'transform',
       }"
+      @touchstart.stop="startPan"
+      @touchmove.stop="pan"
+      @touchend.stop="endPan"
+      @touchcancel.stop="endPan"
     >
       <div
         class="relative w-full h-full"
@@ -45,7 +119,7 @@
             }"
             :is-selected="boardStore.selectedId === item.id"
             @select="boardStore.setSelectedId"
-            @update:position="(updates) => updateItemPosition(item.id, updates)"
+            @update:position="(updates:Object) => updateItemPosition(item.id, updates)"
             :shadow="item.kind === 'text'"
           >
             <StickyNote
@@ -54,11 +128,18 @@
               :initial-text="item.content.text"
               :initial-color="item.content.color"
               :is-selected="boardStore.selectedId === item.id"
+              @update:text="(text: string) => noteStore.updateNoteContent(item.id, { text })"
+              @update:color="(color: string) => noteStore.updateNoteContent(item.id, { color })"
             />
             <TodoList
               v-else-if="item.kind === 'todo'"
               :list="item"
               :is-selected="boardStore.selectedId === item.id"
+              @update:title="(title:string) => todoStore.updateTodoTitle(item.id, title)"
+              @add:task="(content:string) => todoStore.addTask(item.id, content)"
+              @update:task="(taskId:string, content:string) => todoStore.updateTask(item.id, taskId, content)"
+              @toggle:task="(taskId:string) => todoStore.toggleTaskCompletion(item.id, taskId)"
+              @delete:task="(taskId:string) => todoStore.deleteTask(item.id, taskId)"
             />
             <LinkItem
               v-else-if="item.kind === 'link'"
@@ -68,15 +149,14 @@
             <Timer
               v-else-if="item.kind === 'timer'"
               :is-selected="boardStore.selectedId === item.id"
+              @update:settings="(settings) => timerStore.updateTimerSettings(item.id, settings)"
             />
             <TextWidget
               v-else-if="item.kind === 'text'"
               :item-id="item.id"
               :initial-text="item.content.text"
               :is-selected="boardStore.selectedId === item.id"
-              @update:text="
-                (text) => boardStore.updateItem(item.id, { content: { text } })
-              "
+              @update:text="(text:string) => textWidgetStore.updateTextWidgetContent(item.id, text)"
             />
           </BoardItemWrapper>
         </template>
@@ -88,51 +168,6 @@
     <BoardPasswordDialog />
   </div>
 </template>
-
-<script setup lang="ts">
-import { onMounted, ref } from 'vue';
-import { useRoute } from 'vue-router';
-import BoardItemWrapper from "~/components/BoardItemWrapper.vue";
-
-import { usePanZoom } from "~/composables/usePanZoom";
-import { useBoard } from "@/composables/useBoard";
-import { useItemManagement } from "@/composables/useItemManagement";
-import { useClipboard } from "@/composables/useClipboard";
-import { applyOptimalZoom } from "@/utils/boardUtils";
-
-// Initialize composables
-const route = useRoute();
-const { boardStore, initializeCurrentBoard } = useBoard();
-const { scale, translateX, translateY, startPan, pan, endPan, handleZoom, updateZoom } = usePanZoom();
-const { handleDelete, updateItemPosition } = useItemManagement();
-const { handlePaste } = useClipboard();
-
-const boardRef = ref<HTMLElement | null>(null);
-
-// Initialize board
-onMounted(async () => {
-  await initializeCurrentBoard();
-  
-  // Apply optimal zoom after board is loaded
-  if (boardStore.board?.data.items) {
-    // Create a function to set the translation directly
-    const setTranslate = (x: number, y: number) => {
-      translateX.value = x;
-      translateY.value = y;
-    };
-    
-    // Pass the setTranslate function to applyOptimalZoom
-    applyOptimalZoom(boardStore.board.data.items, updateZoom, setTranslate);
-  }
-  
-  // Ensure the board element has focus to capture keyboard events
-  boardRef.value?.focus();
-});
-useGlobalShortcuts({
-  handleDelete,
-  handlePaste
-});
-</script>
 
 <style>
 .board-container {

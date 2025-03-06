@@ -1,10 +1,16 @@
 
 import { useBoardStore } from '~/stores/board';
 import { useItemManagement } from './useItemManagement';
+import { useNoteStore } from '~/stores/noteStore';
+import { useTextWidgetStore } from '~/stores/textWidgetStore';
+import { useLinkStore } from '~/stores/linkStore';
 
 export function useClipboard() {
-  const boardStore = useBoardStore();
-  const { updateItemPosition } = useItemManagement();
+    const boardStore = useBoardStore();
+    const noteStore = useNoteStore();
+    const textWidgetStore = useTextWidgetStore();
+    const linkStore = useLinkStore();
+    const { updateItemPosition } = useItemManagement();
 
   const handlePaste = async (e: ClipboardEvent) => {
     // Ignore if user is typing in an input field
@@ -27,7 +33,7 @@ export function useClipboard() {
         const url = new URL(text);
         if (url.protocol === 'http:' || url.protocol === 'https:') {
           const position = calculateCenterPosition(400, 200);
-          await boardStore.addLinkItem(text, {
+          await linkStore.addLinkItem(text, {
             x: position.x,
             y: position.y,
             width: 400,
@@ -42,7 +48,7 @@ export function useClipboard() {
       // If it's not a URL, add as a text widget or note
       if (text.length > 100) {
         const position = calculateCenterPosition(300, 200);
-        boardStore.addNote(text, {
+        noteStore.addNote(text, {
           x: position.x,
           y: position.y,
           color: 'yellow',
@@ -51,14 +57,14 @@ export function useClipboard() {
         });
       } else {
         const position = calculateCenterPosition(300, 100);
-        boardStore.addTextWidget({
+        textWidgetStore.addTextWidget({
           x: position.x,
           y: position.y,
           width: 300,
           height: 100,
         }).then(textWidget => {
           if (textWidget) {
-            boardStore.updateItem(textWidget.id, { content: { text } });
+            textWidgetStore.updateTextWidgetContent(textWidget.id, text);
           }
         });
       }
