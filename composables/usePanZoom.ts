@@ -110,6 +110,13 @@ export function usePanZoom() {
     }
   };
 
+  // Global handler to prevent browser zoom on Ctrl+wheel
+  const preventBrowserZoom = (e: WheelEvent) => {
+    if (e.ctrlKey) {
+      e.preventDefault();
+    }
+  };
+
   // Set up event listeners
   useEventListener(window, 'mousemove', pan);
   useEventListener(window, 'touchmove', pan, { passive: false });
@@ -118,6 +125,9 @@ export function usePanZoom() {
   useEventListener(window, 'touchend', endPan);
   useEventListener(window, 'touchcancel', endPan);
   useEventListener(window, 'keydown', handleKeyboardZoom);
+  
+  // Add global wheel event listener with capture phase to prevent browser zoom
+  useEventListener(window, 'wheel', preventBrowserZoom, { passive: false, capture: true });
 
   return {
     scale,
