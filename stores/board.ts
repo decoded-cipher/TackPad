@@ -20,10 +20,11 @@ export const useBoardStore = defineStore('board', () => {
   const password = ref(null)
   const boards = useLocalStorage<Boards>('boards', {})
 
+  // Get route at the store level
+  const route = useRoute()
+
   // Actions
   const initializeBoard = async (boardId: string = 'load') => {
-
-    const route = useRoute()
     loading.value = true
     
     // Case: 'load' - Load the latest board from local storage
@@ -68,7 +69,7 @@ export const useBoardStore = defineStore('board', () => {
       }
   
       // Redirect if needed (for 'create' or when board ID doesn't match route)
-      if(boardId === 'create' || route.params.id !== board.value?.board_id){
+      if(boardId === 'create' || (route?.params?.id && route.params.id !== board.value?.board_id)){
         await navigateTo(`/board/${board.value?.board_id}`)
       }
       
