@@ -1,12 +1,20 @@
 import { ref, computed } from 'vue';
 import { useEventListener } from '@vueuse/core';
 import { useGesture } from './useGesture';
+import { useBoardStore } from '~/stores/board';
 
 const MIN_ZOOM = 0.25;
 const MAX_ZOOM = 1;
 
 export function usePanZoom() {
-  const scale = ref(1);
+  const boardStore = useBoardStore();
+  
+  // Use the scale from the board store instead of a local ref
+  const scale = computed({
+    get: () => boardStore.scale,
+    set: (value) => boardStore.setScale(value)
+  });
+  
   const translateX = ref(0);
   const translateY = ref(0);
   const isPanning = ref(false);
