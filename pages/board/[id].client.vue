@@ -165,6 +165,9 @@ definePageMeta({
 
     <BoardHeader />
     <BoardToolbar />
+  
+      <ProfilePopup />
+    
     <BoardPasswordDialog />
   </div>
 </template>

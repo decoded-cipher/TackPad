@@ -2,11 +2,24 @@ export default defineNuxtConfig({
   devtools:{
     enabled: true
   },
-  modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt', '@nuxthub/core', '@nuxt/fonts'],
+  modules: [
+    '@nuxtjs/tailwindcss',
+    '@pinia/nuxt',
+    '@nuxthub/core',
+    '@nuxt/fonts',
+    'nuxt-auth-utils'
+  ],
 
   runtimeConfig: {
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api'
+    },
+    oauth:{
+      google: {
+        clientId: '...',
+        clientSecret: '...',
+        redirectURL: '...'
+      }
     }
   },
   hub:{
