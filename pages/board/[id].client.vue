@@ -68,7 +68,9 @@ useGlobalShortcuts({
 const updateItemPosition = (itemId: string, updates: { x?: number; y?: number; width?: number; height?: number }) => {
   itemStore.updateItemPosition(itemId, updates);
 };
-
+function handleDeselect() {
+  boardStore.setSelectedId(null);
+}
 definePageMeta({
   alias: '/'
 })
@@ -84,7 +86,7 @@ definePageMeta({
     @mouseup.stop="endPan"
     @mouseleave.stop="endPan"
     @wheel.ctrl.prevent="handleZoom"
-    @click.stop="(e: MouseEvent) => e.target === e.currentTarget && boardStore.setSelectedId(null)"
+    @click.stop="handleDeselect"
     tabindex="0"
   >
     <div
@@ -165,6 +167,9 @@ definePageMeta({
 
     <BoardHeader />
     <BoardToolbar />
+  
+      <ProfilePopup />
+    
     <BoardPasswordDialog />
   </div>
 </template>

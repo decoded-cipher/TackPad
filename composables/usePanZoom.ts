@@ -1,11 +1,20 @@
 import { ref, computed } from 'vue';
 import { useEventListener } from '@vueuse/core';
+import { useGesture } from './useGesture';
+import { useBoardStore } from '~/stores/board';
 
 const MIN_ZOOM = 0.25;
 const MAX_ZOOM = 1;
 
 export function usePanZoom() {
-  const scale = ref(1);
+  const boardStore = useBoardStore();
+  
+  // Use the scale from the board store instead of a local ref
+  const scale = computed({
+    get: () => boardStore.scale,
+    set: (value) => boardStore.setScale(value)
+  });
+  
   const translateX = ref(0);
   const translateY = ref(0);
   const isPanning = ref(false);
@@ -15,6 +24,9 @@ export function usePanZoom() {
   const lastX = ref(0);
   const lastY = ref(0);
   const isTouchDevice = ref(false);
+  
+  // Use gesture for better touch handling
+  const gesture = useGesture();
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.code === 'Space' && !spacePressed.value && !e.repeat && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement)) {
@@ -55,6 +67,7 @@ export function usePanZoom() {
   const startPan = (e: MouseEvent | TouchEvent) => {
     if (e instanceof TouchEvent) {
       isTouchDevice.value = true;
+      
       if (e.touches.length === 2) {
         initialDistance.value = Math.hypot(
           e.touches[1].clientX - e.touches[0].clientX,
@@ -68,20 +81,32 @@ export function usePanZoom() {
         };
         lastX.value = pos.x;
         lastY.value = pos.y;
+      } else if (e.touches.length === 1) {
+        // Start gesture tracking for single touch
+        gesture.start(e);
+        isPanning.value = true;
       }
       return;
     }
 
-    // Mouse interaction
+    // Mouse interaction - require space key
     if (e.button !== 0 || !spacePressed.value) return;
     isPanning.value = true;
     lastX.value = e.clientX;
     lastY.value = e.clientY;
+    gesture.start(e);
+  };
+
+  const handleWheel = (e: WheelEvent) => {
+    // Only handle wheel events for panning (not zooming)
+    if (!e.ctrlKey && e.deltaY % 1 === 0) {
+      translateX.value = translateX.value - e.deltaX;
+      translateY.value = translateY.value - e.deltaY;
+    }
   };
 
   const pan = (e: MouseEvent | TouchEvent) => {
-    if (!isPanning.value && e instanceof MouseEvent) return;
-
+    // Handle touch events
     if (e instanceof TouchEvent) {
       if (e.touches.length === 2) {
         const currentDistance = Math.hypot(
@@ -104,34 +129,41 @@ export function usePanZoom() {
             lastY.value = centerY;
           }
         }
+      } else if (e.touches.length === 1 && isPanning.value) {
+        // Use gesture for smoother single touch panning
+        gesture.move(e);
+        translateX.value += gesture.delta.value.x;
+        translateY.value += gesture.delta.value.y;
       }
       return;
     }
 
-    // Mouse interaction
-    if (!spacePressed.value) {
-      isPanning.value = false;
-      return;
-    }
-
-    const deltaX = e.clientX - lastX.value;
-    const deltaY = e.clientY - lastY.value;
-    translateX.value += deltaX;
-    translateY.value += deltaY;
-    lastX.value = e.clientX;
-    lastY.value = e.clientY;
+    // Mouse interaction - require space key
+    if (!isPanning.value || !spacePressed.value) return;
+    
+    gesture.move(e);
+    translateX.value += gesture.delta.value.x;
+    translateY.value += gesture.delta.value.y;
   };
 
   const endPan = () => {
     isPanning.value = false;
     lastScale.value = 1;
     initialDistance.value = 0;
+    gesture.end();
   };
 
   // Set up event listeners
   useEventListener(window, 'keydown', handleKeyDown);
   useEventListener(window, 'keyup', handleKeyUp);
   useEventListener(window, 'wheel', handleZoom, { passive: false });
+  useEventListener(window, 'wheel', handleWheel, { passive: false });
+  useEventListener(window, 'mousemove', pan);
+  useEventListener(window, 'touchmove', pan, { passive: false });
+  useEventListener(window, 'mouseup', endPan);
+  useEventListener(window, 'mouseleave', endPan);
+  useEventListener(window, 'touchend', endPan);
+  useEventListener(window, 'touchcancel', endPan);
 
   return {
     scale,
