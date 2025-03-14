@@ -29,9 +29,9 @@ const fetchProfileData = async () => {
     const response = await fetch('/api/profile')
     if (!response.ok) {
       if (response.status === 401) {
-        // User is logged in but no profile exists yet
-        // This should rarely happen as profiles are created during auth
-        console.warn('Logged in but no profile found')
+        // User is logged in but no profile exists yet or token is invalid
+        console.warn('Logged in but no profile found or unauthorized')
+        error.value = 'Authentication error'
         return
       }
       throw new Error('Failed to fetch profile')
@@ -98,7 +98,6 @@ watch(loggedIn, async (newValue) => {
 // Handle sign out and redirect
 const handleSignOut = async () => {
   await clear()
-  await router.push('/')
 }
 </script>
 
@@ -113,10 +112,20 @@ const handleSignOut = async () => {
         <div class="text-red-500 mb-2">{{ error }}</div>
         <button 
           @click="fetchProfileData" 
-          class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors mb-4"
         >
           Try Again
         </button>
+        
+        <!-- Sign Out Button for error state -->
+        <div class="pt-2">
+          <button 
+            @click="handleSignOut"
+            class="block w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-center hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+          >
+            Sign Out
+          </button>
+        </div>
       </div>
       
       <div v-else-if="profileData" class="space-y-6">
@@ -204,7 +213,17 @@ const handleSignOut = async () => {
       </div>
       
       <div v-else class="text-center py-8 text-gray-500 dark:text-gray-400">
-        Profile information not available
+        <p class="mb-4">Profile information not available</p>
+        
+        <!-- Sign Out Button when no profile data -->
+        <div class="pt-2">
+          <button 
+            @click="handleSignOut"
+            class="block w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-center hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+          >
+            Sign Out
+          </button>
+        </div>
       </div>
     </template>
     
