@@ -123,6 +123,7 @@ definePageMeta({
             @select="boardStore.setSelectedId"
             @update:position="(updates:Object) => updateItemPosition(item.id, updates)"
             :shadow="item.kind === 'text'"
+            @delete="handleDelete"
           >
             <StickyNote
               v-if="item.kind === 'note'"
