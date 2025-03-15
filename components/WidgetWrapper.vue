@@ -1,26 +1,25 @@
 <script setup lang="ts">
-import { useItemInteraction } from '~/composables/useItemInteraction'
-import { ref } from 'vue'
+import { useItemInteraction } from "~/composables/useItemInteraction";
 
 const props = defineProps<{
   position: {
-    x: number
-    y: number
-    width: number
-    height: number
-  }
-  itemId: string
-  isSelected: boolean
-  shadow?: boolean
-}>()
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  itemId: string;
+  isSelected: boolean;
+  shadow?: boolean;
+}>();
 
 const emit = defineEmits<{
-  (e: 'select', id: string): void
-  (e: 'update:position', updates: Partial<typeof props.position>): void
-  (e: 'delete'): void
-  (e: 'parent'): void
-  (e: 'lock'): void
-}>()
+  (e: "select", id: string): void;
+  (e: "update:position", updates: Partial<typeof props.position>): void;
+  (e: "delete"): void;
+  (e: "parent"): void;
+  (e: "lock"): void;
+}>();
 
 const {
   style,
@@ -30,133 +29,140 @@ const {
   startMove,
   startResize,
   move,
-  stopInteraction
-} = useItemInteraction(props.position, (updates) => {
-  const updatedPosition = {
-    ...props.position,
-    ...updates
+  stopInteraction,
+} = useItemInteraction(
+  props.position,
+  (updates) => {
+    const updatedPosition = {
+      ...props.position,
+      ...updates,
+    };
+    emit("update:position", updatedPosition);
+  },
+  {
+    minWidth: 200,
+    minHeight: 200,
+    grid: 1,
   }
-  emit('update:position', updatedPosition)
-}, {
-  minWidth: 200,
-  minHeight: 200,
-  grid: 1
-})
+);
 
-const showMenu = ref(false)
+const showMenu = ref(false);
 
 const toggleMenu = (event: Event) => {
-  event.stopPropagation()
-  showMenu.value = !showMenu.value
-}
+  event.stopPropagation();
+  showMenu.value = !showMenu.value;
+};
 
 const handleMenuAction = (action: string, event: Event) => {
-  event.stopPropagation()
-  showMenu.value = false
-  emit(action as 'delete' | 'parent' | 'lock')
-}
+  event.stopPropagation();
+  showMenu.value = false;
+  emit(action as "delete" | "parent" | "lock");
+};
 
 // Close menu when clicking outside
 const closeMenu = () => {
-  showMenu.value = false
-}
+  showMenu.value = false;
+};
 </script>
 
 <template>
-<div 
-  ref="elementRef" 
-  class="widget-container" 
-  :class="{ 
-    'widget-selected': isSelected,
-    'widget-moving': isMoving,
-    'widget-resizing': isResizing,
-    'select-none': isMoving || isResizing
-  }"
-  :style="[
-    style,
-    { touchAction: 'none' } // Explicitly disable browser touch actions
-  ]"
-  @pointermove.stop.prevent="move"
-  @pointerup.stop="stopInteraction"
-  @pointercancel.stop="stopInteraction"
-  @pointerleave.stop="stopInteraction"
-  @click.stop="$emit('select', props.itemId)"
->
+  <div
+    ref="elementRef"
+    class="widget-container"
+    :class="{
+      'widget-selected': isSelected,
+      'widget-moving': isMoving,
+      'widget-resizing': isResizing,
+      'select-none': isMoving || isResizing,
+    }"
+    :style="[
+      style,
+      { touchAction: 'none' }, // Explicitly disable browser touch actions
+    ]"
+    @pointermove.stop.prevent="move"
+    @pointerup.stop="stopInteraction"
+    @pointercancel.stop="stopInteraction"
+    @pointerleave.stop="stopInteraction"
+    @click.stop="$emit('select', props.itemId)"
+  >
     <div class="widget-header-minimal">
-        <div 
-          class="drag-handle-horizontal" 
-          title="Drag to move"
-          @pointerdown.stop.prevent="startMove"
-        >
-        </div>
-        <div class="widget-controls w-full flex justify-between" title="More Options">
-            <div class="relative">
-              <button class="control-button justify-self-end" title="More Options" @click.stop="toggleMenu">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="3" y1="12" x2="21" y2="12"></line>
-                  <line x1="3" y1="6" x2="21" y2="6"></line>
-                  <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
-              </button>
-              
-              <!-- Dropdown Menu -->
-              <div v-if="showMenu" class="widget-menu">
-                <button @click.stop="handleMenuAction('delete', $event)" class="menu-item">
-                  Delete
-                </button>
-                <button @click.stop="handleMenuAction('parent', $event)" class="menu-item">
-                  Parent
-                </button>
-                <button @click.stop="handleMenuAction('lock', $event)" class="menu-item">
-                  Lock
-                </button>
-              </div>
-            </div>
-        </div>
+      <div
+        class="drag-handle-horizontal"
+        title="Drag to move"
+        @pointerdown.stop.prevent="startMove"
+        @mouseover="showMenu = true"
+      ></div>
+      <div
+        class="widget-controls w-full flex justify-between"
+        title="More Options"
+      >
+        <transition name="fade">
+          <div v-if="isSelected" class="widget-menu rounded-xl shadow-lg">
+            <button
+              @click.stop="handleMenuAction('delete', $event)"
+              class="menu-item"
+            >
+              <img
+                src="public/icons/Delete.svg"
+                alt="Delete"
+                class="h-4 w-4 sm:h-4 sm:w-4"
+              />
+            </button>
+            <button
+              @click.stop="handleMenuAction('lock', $event)"
+              class="menu-item"
+            >
+              <img
+                src="public/icons/lock.svg"
+                alt="Lock"
+                class="h-4 w-4 sm:h-4 sm:w-4"
+              />
+            </button>
+          </div>
+        </transition>
+      </div>
     </div>
     <div class="widget-content">
-        <slot></slot>
+      <slot></slot>
     </div>
-    <div 
-      class="resize-handle" 
+    <div
+      class="resize-handle"
       title="Resize"
       @pointerdown.stop.prevent="startResize('se', $event)"
-    >
-    </div>
-</div>  
+    ></div>
+  </div>
 </template>
 
 <style scoped>
-  :root {
-    --widget-radius: 5px;
-    --primary-color: #3498db;
-    --text-primary: #333333;
-    --text-secondary: #666666;
-    --bg-color: #f0f2f5;
-    --widget-bg: #ffffff;
-    --shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-    --transition: all 0.05s ease;
-    --handle-bg: rgba(0, 0, 0, 0.2);
-  }
-  
+:root {
+  --widget-radius: 5px;
+  --primary-color: #3498db;
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --bg-color: #f0f2f5;
+  --widget-bg: #ffffff;
+  --shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  --transition: all 0.05s ease;
+  --handle-bg: rgba(0, 0, 0, 0.2);
+}
+
 .widget-container {
-    min-width: 320px;
-    min-height: 240px;
-    width: fit-content;
-    height: fit-content;
-    position: absolute;
-    background: transparent;
-    border-radius: var(--widget-radius, 5px);
-    /* box-shadow: var(--shadow, 0 10px 25px rgba(0, 0, 0, 0.08)); */
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    border: none;
-    transition: var(--transition, all 0.05s ease);
-    will-change: transform;
-    user-select: none;
-    touch-action: none;
-    pointer-events: all;
+  min-width: 320px;
+  min-height: 240px;
+  width: fit-content;
+  height: fit-content;
+  position: absolute;
+  background: transparent;
+  border-radius: var(--widget-radius, 5px);
+  /* box-shadow: var(--shadow, 0 10px 25px rgba(0, 0, 0, 0.08)); */
+  display: flex;
+  flex-direction: column;
+  border: none;
+  transition: var(--transition, all 0.05s ease);
+  will-change: transform;
+  user-select: none;
+  touch-action: none;
+  pointer-events: all;
 }
 
 .widget-container:hover {
@@ -185,22 +191,25 @@ const closeMenu = () => {
 }
 
 .widget-header-minimal {
-    display: flex;
-    padding: 8px 8px;
-    background: transparent;
+  display: flex;
+  padding: 8px 8px;
+  background: transparent;
+  position: absolute;
+  z-index: 10;
+  left: 0;
+  right: 0;
 }
 
 .drag-handle-horizontal {
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60px;
-    height: 8px;
-    background: var(--handle-bg,rgba(0, 0, 0, 0.2));
-    border-radius: 4px;
-    cursor: grab;
-    transition: var(--transition, all 0.25s ease);
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 8px;
+  background: var(--handle-bg, rgba(0, 0, 0, 0.2));
+  border-radius: 4px;
+  cursor: grab;
+  transition: var(--transition, all 0.25s ease);
 }
 
 .widget-moving .drag-handle-horizontal {
@@ -210,7 +219,7 @@ const closeMenu = () => {
 
 .widget-content {
   flex: 1;
-  overflow: auto;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -222,32 +231,32 @@ const closeMenu = () => {
 }
 
 .resize-handle {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    width: 16px;
-    height: 16px;
-    background:transparent;
-    cursor: nwse-resize;
-    transition: var(--transition, all 0.25s ease);
-    z-index: 10;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 16px;
+  height: 16px;
+  background: transparent;
+  cursor: nwse-resize;
+  transition: var(--transition, all 0.25s ease);
+  z-index: 10;
 }
 
 .resize-handle::after {
-    content: "";
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    width: 10px;
-    height: 10px;
-    background: transparent;
-    border-bottom-right-radius: 10px;
-    border-right: 4px solid rgba(0, 0, 0, 0.1);
-    border-bottom: 4px solid rgba(0, 0, 0, 0.1);
-    border-top: none;
-    border-left: none;
-    z-index: 10;
-    transition: var(--transition, all 0.25s ease);
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 10px;
+  height: 10px;
+  background: transparent;
+  border-bottom-right-radius: 10px;
+  border-right: 4px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 4px solid rgba(0, 0, 0, 0.1);
+  border-top: none;
+  border-left: none;
+  z-index: 10;
+  transition: var(--transition, all 0.25s ease);
 }
 
 .resize-handle:hover::after,
@@ -260,14 +269,15 @@ const closeMenu = () => {
 
 .widget-menu {
   position: absolute;
-  top: 100%;
-  left: 0;
+  top: -2.75rem;
+  left: 50%;
+  transform: translateX(-50%);
   background: white;
   border-radius: 4px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   z-index: 20;
-  min-width: 120px;
   overflow: hidden;
+  display: flex;
 }
 
 .menu-item {
@@ -295,25 +305,37 @@ const closeMenu = () => {
     width: 80px;
     height: 12px;
   }
-  
+
   .resize-handle {
     width: 24px;
     height: 24px;
   }
-  
+
   .resize-handle::after {
     width: 16px;
     height: 16px;
   }
-  
+
   .resize-handle:hover::after,
   .widget-resizing .resize-handle::after {
     width: 20px;
     height: 20px;
   }
-  
+
   .widget-controls button {
     padding: 8px;
   }
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 5s ease;
+}
+
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+
+.fade-enter-to, .fade-leave-from {
+  opacity: 1;
 }
 </style>
