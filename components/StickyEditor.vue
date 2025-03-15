@@ -31,6 +31,18 @@
       })
     })
 
+    watch(() => props.value, (newValue) => {
+      // Only update if editor content differs from prop value
+      // to prevent cursor jump issues
+      const currentContent = editor.value?.getHTML()
+      if (newValue && newValue !== currentContent) {
+        editor.value?.commands.setContent(newValue)
+      }
+    })
+
+    onBeforeUnmount(() => {
+      editor.value?.destroy()
+    })
     onBeforeUnmount(() => {
       editor.value?.destroy()
     })
