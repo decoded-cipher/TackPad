@@ -2,46 +2,38 @@
     <editor-content :editor="editor" class="h-full px-1"/>
   </template>
   
-  <script>
+  <script setup>
     import { Editor, EditorContent } from '@tiptap/vue-3'
     import StarterKit from '@tiptap/starter-kit'
-  
-    export default {
-      props: {
-        value: {
-          type: String,
-          default: '',
+
+    const props = defineProps({
+      value: {
+        type: String,
+        default: '',
+      },
+    })
+
+    const emit = defineEmits(['update'])
+    const editor = ref(null)
+
+    onMounted(() => {
+      editor.value = new Editor({
+        onUpdate: () => {
+          emit('update', editor.value.getHTML())
         },
-      },
-      components: {
-        EditorContent,
-      },
-  
-      data() {
-        return {
-          editor: null,
-        }
-      },
-  
-      mounted() {
-        this.editor = new Editor({
-            onUpdate: () => {
-              this.$emit('update', this.editor.getHTML());
-            },
-            extensions: [StarterKit],
-            editorProps: {
-    attributes: {
-      class: 'p-2 prose focus:outline-none marker:text-black prose-li:leading-[0.75] prose-p:m-0 prose-headings:mb-0',
-    }},
-          content: this.value || "<h2>Welcome to your board! Try adding more notes and todo lists.</h2>",
-          extensions: [StarterKit],
-        })
-      },
-  
-      beforeUnmount() {
-        this.editor.destroy()
-      },
-    }
+        extensions: [StarterKit],
+        editorProps: {
+          attributes: {
+            class: 'p-2 prose focus:outline-none marker:text-black prose-li:leading-[0.75] prose-p:m-0 prose-headings:mb-0',
+          }
+        },
+        content: props.value || "<h2>Welcome to your board! Try adding more notes and todo lists.</h2>",
+      })
+    })
+
+    onBeforeUnmount(() => {
+      editor.value?.destroy()
+    })
   </script>
   <style lang="scss">
   /* Basic editor styles */
