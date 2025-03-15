@@ -12,6 +12,7 @@ interface BaseBoardItem {
   y_position: number;
   width: number;
   height: number;
+  lock: boolean;
 }
 
 // Sticky Note types

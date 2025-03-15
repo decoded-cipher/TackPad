@@ -1,11 +1,9 @@
-
 import { useBoardStore } from '~/stores/board';
 import {useNoteStore} from '~/stores/noteStore'
 import {useTodoStore} from '~/stores/todoStore'
 import {useTimerStore} from '~/stores/timerStore'
 import {useTextWidgetStore} from '~/stores/textWidgetStore'
 import { useItemStore } from '~/stores/itemStore';
-import { nanoid } from 'nanoid';
 
 export function useItemManagement() {
   const boardStore = useBoardStore();
@@ -22,6 +20,7 @@ export function useItemManagement() {
       color: 'yellow',
       width: 300,
       height: 200,
+      lock: false,
     });
   };
 
@@ -32,6 +31,7 @@ export function useItemManagement() {
       y: position.y,
       width: 300,
       height: 300,
+      lock: false,
     });
   };
 
@@ -42,6 +42,7 @@ export function useItemManagement() {
       y: position.y,
       width: 300,
       height: 150,
+      lock: false,
     });
   };
 
@@ -52,6 +53,7 @@ export function useItemManagement() {
       y: position.y,
       width: 300,
       height: 100,
+      lock: false,
     });
   };
 
@@ -70,6 +72,10 @@ export function useItemManagement() {
     itemStore.updateItem(itemId, updates);
   };
 
+  const toggleLock = (itemId: string, locked: boolean) => {
+    itemStore.updateItem(itemId, { lock: locked });
+  };
+
   // Helper function to calculate center position
   const calculateCenterPosition = (width: number, height: number) => {
     // This should be adjusted based on the current view position and scale
@@ -85,6 +91,7 @@ export function useItemManagement() {
     addTimer,
     addTextWidget,
     handleDelete,
-    updateItemPosition
+    updateItemPosition,
+    toggleLock
   };
 }

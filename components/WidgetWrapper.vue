@@ -11,6 +11,7 @@ const props = defineProps<{
   itemId: string;
   isSelected: boolean;
   shadow?: boolean;
+  isLocked?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -18,7 +19,7 @@ const emit = defineEmits<{
   (e: "update:position", updates: Partial<typeof props.position>): void;
   (e: "delete"): void;
   (e: "parent"): void;
-  (e: "lock"): void;
+  (e: "lock", locked: boolean): void;
 }>();
 
 const {
@@ -56,7 +57,13 @@ const toggleMenu = (event: Event) => {
 const handleMenuAction = (action: string, event: Event) => {
   event.stopPropagation();
   showMenu.value = false;
-  emit(action as "delete" | "parent" | "lock");
+  
+  if (action === 'lock') {
+    emit('lock', !props.isLocked);
+    return;
+  }
+  
+  emit(action as "delete" | "parent");
 };
 
 // Close menu when clicking outside
@@ -74,6 +81,7 @@ const closeMenu = () => {
       'widget-moving': isMoving,
       'widget-resizing': isResizing,
       'select-none': isMoving || isResizing,
+      'widget-locked': props.isLocked,
     }"
     :style="[
       style,
@@ -87,6 +95,7 @@ const closeMenu = () => {
   >
     <div class="widget-header-minimal">
       <div
+        v-if="!props.isLocked"
         class="drag-handle-horizontal"
         title="Drag to move"
         @pointerdown.stop.prevent="startMove"
@@ -126,6 +135,7 @@ const closeMenu = () => {
       <slot></slot>
     </div>
     <div
+      v-if="!props.isLocked"
       class="resize-handle"
       title="Resize"
       @pointerdown.stop.prevent="startResize('se', $event)"
@@ -188,6 +198,10 @@ const closeMenu = () => {
   opacity: 0.9;
   will-change: transform, width, height;
   pointer-events: all;
+}
+
+.widget-container.widget-locked {
+  cursor: default;
 }
 
 .widget-header-minimal {
