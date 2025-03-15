@@ -109,7 +109,7 @@ definePageMeta({
         :style="{ transform: 'translate(50%, 50%)' }"
       >
         <template v-if="boardStore.board?.data.items">
-          <BoardItemWrapper
+          <WidgetWrapper
             v-for="item in boardStore.board.data.items"
             :key="item.id"
             :item-id="item.id"
@@ -160,7 +160,7 @@ definePageMeta({
               :is-selected="boardStore.selectedId === item.id"
               @update:text="(text:string) => textWidgetStore.updateTextWidgetContent(item.id, text)"
             />
-          </BoardItemWrapper>
+          </WidgetWrapper>
         </template>
       </div>
     </div>
