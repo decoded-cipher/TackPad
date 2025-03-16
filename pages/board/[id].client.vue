@@ -169,11 +169,13 @@ definePageMeta({
     
     <BoardPasswordDialog />
     <OfflineIndicator />
+    <ZoomControls class="fixed right-2 top-2 z-10" />
   </div>
 </template>
 
 <style>
 .board-container {
   will-change: transform;
+  transition: transform 0.3s ease;
 }
 </style>
