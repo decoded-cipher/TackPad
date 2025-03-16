@@ -69,7 +69,15 @@ export function useItemManagement() {
     itemId: string,
     updates: { x?: number; y?: number; width?: number; height?: number }
   ) => {
-    itemStore.updateItem(itemId, updates);
+    // Map the position properties to their corresponding item properties
+    const itemUpdates: any = {};
+    if (updates.x !== undefined) itemUpdates.x_position = updates.x;
+    if (updates.y !== undefined) itemUpdates.y_position = updates.y;
+    if (updates.width !== undefined) itemUpdates.width = updates.width;
+    if (updates.height !== undefined) itemUpdates.height = updates.height;
+    
+    // Use the generic updateItem function to ensure all properties are updated correctly
+    itemStore.updateItem(itemId, itemUpdates);
   };
 
   const toggleLock = (itemId: string, locked: boolean) => {
