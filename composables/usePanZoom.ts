@@ -81,10 +81,6 @@ export function usePanZoom() {
         };
         lastX.value = pos.x;
         lastY.value = pos.y;
-      } else if (e.touches.length === 1) {
-        // Start gesture tracking for single touch
-        gesture.start(e);
-        isPanning.value = true;
       }
       return;
     }
@@ -129,11 +125,6 @@ export function usePanZoom() {
             lastY.value = centerY;
           }
         }
-      } else if (e.touches.length === 1 && isPanning.value) {
-        // Use gesture for smoother single touch panning
-        gesture.move(e);
-        translateX.value += gesture.delta.value.x;
-        translateY.value += gesture.delta.value.y;
       }
       return;
     }

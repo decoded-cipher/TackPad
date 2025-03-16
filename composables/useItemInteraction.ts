@@ -30,6 +30,8 @@ export function useItemInteraction(
   const initialPos = ref({ ...position })
   const currentPos = ref({ ...position })
   const resizeHandle = ref<string | null>(null)
+  const elementRef = ref<HTMLElement | null>(null)
+  const activePointerId = ref<number | null>(null)
 
   // Watch for external position changes
   watch(() => position, (newPos) => {
@@ -47,41 +49,52 @@ export function useItemInteraction(
     transform: `translate(${currentPos.value.x}px, ${currentPos.value.y}px)`,
     width: `${currentPos.value.width}px`,
     height: `${currentPos.value.height}px`,
+    touchAction: 'none' // Prevent browser handling of all panning and zooming gestures
   }))
 
-  function getEventCoordinates(e: MouseEvent | TouchEvent): Point {
-    if ('touches' in e) {
-      const touch = e.touches[0]
-      return {
-        x: touch.clientX,
-        y: touch.clientY
-      }
-    }
+  function getEventCoordinates(e: PointerEvent): Point {
     return {
       x: e.clientX,
       y: e.clientY
     }
   }
 
-  function startMove(e: MouseEvent | TouchEvent) {
-    if ('button' in e && e.button !== 0) return
+  function startMove(e: PointerEvent) {
+    // Only handle left mouse button or touch
+    if (e.button !== 0 && e.pointerType === 'mouse') return
     
+    e.preventDefault()
     isMoving.value = true
     initialPos.value = { ...currentPos.value }
     startPos.value = getEventCoordinates(e)
+    activePointerId.value = e.pointerId
+    
+    // Set pointer capture for better tracking
+    if (elementRef.value) {
+      elementRef.value.setPointerCapture(e.pointerId)
+    }
   }
 
-  function startResize(handle: string, e: MouseEvent | TouchEvent) {
-    if ('button' in e && e.button !== 0) return
+  function startResize(handle: string, e: PointerEvent) {
+    // Only handle left mouse button or touch
+    if (e.button !== 0 && e.pointerType === 'mouse') return
     
+    e.preventDefault()
     isResizing.value = true
     resizeHandle.value = handle
     initialPos.value = { ...currentPos.value }
     startPos.value = getEventCoordinates(e)
+    activePointerId.value = e.pointerId
+    
+    // Set pointer capture for better tracking
+    if (elementRef.value) {
+      elementRef.value.setPointerCapture(e.pointerId)
+    }
   }
 
-  function move(e: MouseEvent | TouchEvent) {
-    if (!isMoving.value && !isResizing.value) return
+  function move(e: PointerEvent) {
+    if ((!isMoving.value && !isResizing.value) || 
+        (activePointerId.value !== null && e.pointerId !== activePointerId.value)) return
     
     const coords = getEventCoordinates(e)
     const scale = boardStore.scale
@@ -135,16 +148,31 @@ export function useItemInteraction(
     }
   }
 
-  function stopInteraction() {
-    isMoving.value = false
-    isResizing.value = false
-    resizeHandle.value = null
+  function stopInteraction(e: PointerEvent) {
+    if ((isMoving.value || isResizing.value) && 
+        (activePointerId.value === null || e.pointerId === activePointerId.value)) {
+      
+      // Release pointer capture
+      if (elementRef.value && activePointerId.value !== null) {
+        try {
+          elementRef.value.releasePointerCapture(activePointerId.value)
+        } catch (err) {
+          // Ignore errors when pointer is already released
+        }
+      }
+      
+      isMoving.value = false
+      isResizing.value = false
+      resizeHandle.value = null
+      activePointerId.value = null
+    }
   }
 
   return {
     style,
     isMoving,
     isResizing,
+    elementRef,
     startMove,
     startResize,
     move,

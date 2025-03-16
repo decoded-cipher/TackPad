@@ -11,7 +11,7 @@ import { useTodoStore } from "~/stores/todoStore";
 import { useLinkStore } from "~/stores/linkStore";
 import { useTimerStore } from "~/stores/timerStore";
 import { useTextWidgetStore } from "~/stores/textWidgetStore";
-
+import {useItemManagement} from "~/composables/useItemManagement"
 import { usePanZoom } from "~/composables/usePanZoom";
 import { useGlobalShortcuts } from "~/composables/useGlobalShortcuts";
 import { useClipboard } from "~/composables/useClipboard";
@@ -25,7 +25,7 @@ const todoStore = useTodoStore();
 const linkStore = useLinkStore();
 const timerStore = useTimerStore();
 const textWidgetStore = useTextWidgetStore();
-
+const { handleDelete, updateItemPosition, toggleLock } = useItemManagement();
 // Initialize composables
 const route = useRoute();
 const { scale, translateX, translateY, startPan, pan, endPan, handleZoom, updateZoom, spacePressed, isPanning } = usePanZoom();
@@ -33,10 +33,7 @@ const { handlePaste } = useClipboard();
 
 const boardRef = ref<HTMLElement | null>(null);
 
-// Handle delete function for global shortcuts
-const handleDelete = () => {
-  boardStore.deleteSelected();
-};
+
 
 // Initialize board
 onMounted(async () => {
@@ -64,10 +61,7 @@ useGlobalShortcuts({
   handlePaste
 });
 
-// Update item position (used in the template)
-const updateItemPosition = (itemId: string, updates: { x?: number; y?: number; width?: number; height?: number }) => {
-  itemStore.updateItemPosition(itemId, updates);
-};
+
 function handleDeselect() {
   boardStore.setSelectedId(null);
 }
@@ -109,7 +103,7 @@ definePageMeta({
         :style="{ transform: 'translate(50%, 50%)' }"
       >
         <template v-if="boardStore.board?.data.items">
-          <BoardItemWrapper
+          <WidgetWrapper
             v-for="item in boardStore.board.data.items"
             :key="item.id"
             :item-id="item.id"
@@ -120,9 +114,12 @@ definePageMeta({
               height: item.height,
             }"
             :is-selected="boardStore.selectedId === item.id"
+            :is-locked="item.lock"
             @select="boardStore.setSelectedId"
             @update:position="(updates:Object) => updateItemPosition(item.id, updates)"
             :shadow="item.kind === 'text'"
+            @delete="handleDelete"
+            @lock="(locked:boolean) => toggleLock(item.id, locked)"
           >
             <StickyNote
               v-if="item.kind === 'note'"
@@ -160,7 +157,7 @@ definePageMeta({
               :is-selected="boardStore.selectedId === item.id"
               @update:text="(text:string) => textWidgetStore.updateTextWidgetContent(item.id, text)"
             />
-          </BoardItemWrapper>
+          </WidgetWrapper>
         </template>
       </div>
     </div>
@@ -171,6 +168,7 @@ definePageMeta({
       <ProfilePopup />
     
     <BoardPasswordDialog />
+    <OfflineIndicator />
   </div>
 </template>
 
