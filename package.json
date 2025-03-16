@@ -20,6 +20,7 @@
     "lodash": "^4.17.21",
     "nanoid": "^5.0.9",
     "nuxt": "^3.13.0",
+    "nuxt-auth-utils": "^0.5.16",
     "pinia": "^2.1.7",
     "vue-draggable-next": "^2.2.1"
   },
