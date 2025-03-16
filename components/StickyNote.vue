@@ -1,9 +1,10 @@
 <template>
+  
   <div
-    class="w-full h-full flex flex-col relative"
+    class="w-full h-full flex flex-col relative min-h-72 min-w-72"
     :style="{ backgroundColor: color }"
   >
-    <ColorPicker
+  <!-- <ColorPicker
       v-model="color"
       @update:model-value="updateColor"
       v-if="props.isSelected"
@@ -12,12 +13,13 @@
     <!-- <textarea
       v-if="isEditing"
       v-model="text"
-      class="w-full h-full p-6 bg-transparent resize-none focus:outline-none text-lg font-medium leading-tight"
+      class="w-full h-auto p-6 bg-transparent resize-none focus:outline-none text-lg font-medium leading-tight"
       placeholder="Enter your note"
-      @input="updateText"
+      @input="onTextareaInput"
       @blur="isEditing = false"
       @mousedown.stop
       ref="textArea"
+      style="overflow: hidden;"
     />
     <div
       v-else
@@ -54,6 +56,7 @@ async function startEditing() {
   isEditing.value = true;
   await nextTick();
   textArea.value?.focus();
+  adjustTextareaHeight();
 }
 
 function updateText(text: string) {

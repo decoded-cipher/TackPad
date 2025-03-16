@@ -1,11 +1,9 @@
-
 import { useBoardStore } from '~/stores/board';
 import {useNoteStore} from '~/stores/noteStore'
 import {useTodoStore} from '~/stores/todoStore'
 import {useTimerStore} from '~/stores/timerStore'
 import {useTextWidgetStore} from '~/stores/textWidgetStore'
 import { useItemStore } from '~/stores/itemStore';
-import { nanoid } from 'nanoid';
 
 export function useItemManagement() {
   const boardStore = useBoardStore();
@@ -22,6 +20,7 @@ export function useItemManagement() {
       color: 'yellow',
       width: 300,
       height: 200,
+      lock: false,
     });
   };
 
@@ -32,6 +31,7 @@ export function useItemManagement() {
       y: position.y,
       width: 300,
       height: 300,
+      lock: false,
     });
   };
 
@@ -42,6 +42,7 @@ export function useItemManagement() {
       y: position.y,
       width: 300,
       height: 150,
+      lock: false,
     });
   };
 
@@ -52,6 +53,7 @@ export function useItemManagement() {
       y: position.y,
       width: 300,
       height: 100,
+      lock: false,
     });
   };
 
@@ -67,7 +69,19 @@ export function useItemManagement() {
     itemId: string,
     updates: { x?: number; y?: number; width?: number; height?: number }
   ) => {
-    itemStore.updateItem(itemId, updates);
+    // Map the position properties to their corresponding item properties
+    const itemUpdates: any = {};
+    if (updates.x !== undefined) itemUpdates.x_position = updates.x;
+    if (updates.y !== undefined) itemUpdates.y_position = updates.y;
+    if (updates.width !== undefined) itemUpdates.width = updates.width;
+    if (updates.height !== undefined) itemUpdates.height = updates.height;
+    
+    // Use the generic updateItem function to ensure all properties are updated correctly
+    itemStore.updateItem(itemId, itemUpdates);
+  };
+
+  const toggleLock = (itemId: string, locked: boolean) => {
+    itemStore.updateItem(itemId, { lock: locked });
   };
 
   // Helper function to calculate center position
@@ -85,6 +99,7 @@ export function useItemManagement() {
     addTimer,
     addTextWidget,
     handleDelete,
-    updateItemPosition
+    updateItemPosition,
+    toggleLock
   };
 }
