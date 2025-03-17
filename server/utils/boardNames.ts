@@ -1,4 +1,4 @@
-const names = [
+const basicNames = [
     "New Amazing Tackpad",
     "New Brilliant Tackpad",
     "New Majestic Tackpad",
@@ -103,11 +103,82 @@ const tackpadIcons = [
     "✨", "⭐️", "🌟", "🚀", "💡", "🎉", "🏆", "💎", "💫"
   ];
 
-export function getRandomBoardName(){
+  const personalities = [
+    "🧠 Einstein's",
+    "📜 Shakespeare's",
+    "🔍 Sherlock's",
+    "🎨 Picasso's",
+    "⚡ Tesla's",
+    "🖌️ Da Vinci's",
+    "🎵 Mozart's",
+    "⚗️ Marie Curie's",
+    "🌺 Frida Kahlo's",
+    "🍎 Newton's",
+    "🏛️ Aristotle's",
+    "🧙 Tolkien's",
+    "💌 Austen's",
+    "🌻 Van Gogh's",
+    "🐢 Darwin's",
+    "🎣 Hemingway's",
+    "🎹 Beethoven's",
+    "🌌 Hawking's",
+    "💭 Plato's",
+    "⚡ Rowling's",
+    "💡 Edison's",
+    "👑 Cleopatra's",
+    "🏺 Socrates'",
+    "💻 Alan Turing's",
+    "🌲 Bob Ross'",
+    "🔪 Agatha Christie's",
+    "📱 Steve Jobs'",
+    "🧲 Nikola Tesla's",
+    "💥 Oppenheimer's"
+];
 
-    const randomIndex = Math.floor(Math.random() * names.length);
-    const name = names[randomIndex];
+// Descriptors for personalities
+const descriptors = [
+    "Mind Palace",
+    "Brilliant Mess",
+    "Drawing Board",
+    "Secret",
+    "Hidden",
+    "Creative Space",
+    "Lost Manuscript",
+    "Brainstorm Session",
+    "Genius Hour",
+    "Thought Experiment",
+    "Sketchbook",
+    "Master Plan",
+    "Unfiltered Ideas",
+    "Midnight Thoughts",
+    "Workshop",
+    "Private",
+    "Digital",
+    "Inspiration",
+    "Problem-Solving",
+    "Thinking",
+    "Imagination Playground",
+    "Reflections",
+    "Ideas"
+];
+
+  export function getRandomBoardName() {
+    // Randomly decide between basic names and personality names
+    const usePersonalityStyle = Math.random() > 0.5;
+    
+    // Get a random icon (only used for basic names)
     const icon = tackpadIcons[Math.floor(Math.random() * tackpadIcons.length)];
-    return `${icon} ${name}`;
-
+    
+    if (usePersonalityStyle) {
+        // Personality-based name
+        const personality = personalities[Math.floor(Math.random() * personalities.length)];
+        const descriptor = descriptors[Math.floor(Math.random() * descriptors.length)];
+        
+        // Personality strings already include emojis
+        return `${personality} ${descriptor} Tackpad`;
+    } else {
+        // Basic adjective-based name
+        const name = basicNames[Math.floor(Math.random() * basicNames.length)];
+        return `${icon} ${name}`;
+    }
 }
