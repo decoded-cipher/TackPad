@@ -1,5 +1,6 @@
 import { customAlphabet } from 'nanoid';
 import { BOARDS } from '~/server/database/schema';
+import { getRandomBoardName } from '~/server/utils/boardNames';
 import { useDrizzle } from '~/server/utils/drizzle';
 const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 10)
 export default defineEventHandler(async (event) => {
@@ -30,7 +31,7 @@ async function getWelcomeBoard(board_id: string) {
   const board = {
     board_id: board_id === 'create' ? `BOARD-${nanoid(10)}` : makeUrlSafe(decodeURIComponent(board_id)),
     data: {
-      title: 'Untitled TackPad',
+      title: getRandomBoardName(),
       items: [{
         id: `STICKY-${nanoid(10)}`,
         kind: 'note',
