@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
-import BoardItemWrapper from "~/components/BoardItemWrapper.vue";
 
 // Import stores
 import { useBoardStore } from "~/stores/board";
@@ -169,7 +168,7 @@ definePageMeta({
     
     <BoardPasswordDialog />
     <OfflineIndicator />
-    <ZoomControls class="fixed right-2 top-2 z-10" />
+    <ZoomControls class="fixed right-2 bottom-2 z-10" />
   </div>
 </template>
 
