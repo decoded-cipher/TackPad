@@ -1,23 +1,25 @@
 <template>
+  
   <div
-    class="w-full h-full flex flex-col relative"
+    class="w-full h-full flex flex-col relative min-h-72 min-w-72"
     :style="{ backgroundColor: color }"
   >
-    <ColorPicker
+  <!-- <ColorPicker
       v-model="color"
       @update:model-value="updateColor"
       v-if="props.isSelected"
     />
 
-    <textarea
+    <!-- <textarea
       v-if="isEditing"
       v-model="text"
-      class="w-full h-full p-6 bg-transparent resize-none focus:outline-none text-lg font-medium leading-tight"
+      class="w-full h-auto p-6 bg-transparent resize-none focus:outline-none text-lg font-medium leading-tight"
       placeholder="Enter your note"
-      @input="updateText"
+      @input="onTextareaInput"
       @blur="isEditing = false"
       @mousedown.stop
       ref="textArea"
+      style="overflow: hidden;"
     />
     <div
       v-else
@@ -25,13 +27,15 @@
       @dblclick.stop="startEditing"
     >
       {{ text || "Enter your note" }}
-    </div>
+    </div> -->
+    <StickyEditor @update="updateText" :value="text"/>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, nextTick } from "vue";
 import { useBoardStore } from "~/stores/board";
+import { useNoteStore } from "~/stores/noteStore";
 import ColorPicker from "~/components/ColorPicker.vue";
 
 const props = defineProps<{
@@ -42,6 +46,7 @@ const props = defineProps<{
 }>();
 
 const boardStore = useBoardStore();
+const noteStore = useNoteStore();
 const text = ref(props.initialText || "");
 const color = ref(props.initialColor || "#FFD700");
 const isEditing = ref(false);
@@ -51,17 +56,16 @@ async function startEditing() {
   isEditing.value = true;
   await nextTick();
   textArea.value?.focus();
+  adjustTextareaHeight();
 }
 
-function updateText(e: Event) {
-  const target = e.target as HTMLTextAreaElement;
-  text.value = target.value;
-  boardStore.updateItem(props.itemId, { text: text.value });
+function updateText(text: string) {
+  noteStore.updateNoteContent(props.itemId, { text: text });
 }
 
 function updateColor(newColor: string) {
   color.value = newColor;
-  boardStore.updateItem(props.itemId, { color: newColor });
+  noteStore.updateNoteContent(props.itemId, { color: newColor });
 }
 
 watch(
