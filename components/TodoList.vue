@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full flex flex-col bg-white rounded-lg">
+  <div class="h-full flex flex-col bg-white rounded-lg" :data-list-id="list.id">
     <div class="p-4 border-b flex items-center justify-between">
       <div class="flex items-center gap-2 w-full">
         <div v-if="isEditingTitle" class="w-full">
@@ -30,35 +30,51 @@
       </div>
     </div>
     
-    <div class="p-4 pt-0 overflow-auto" style="max-height: calc(100% - 64px);">
+    <div class="p-4 pt-0 overflow-auto overflow-x-hidden" style="max-height: calc(100% - 64px);">
       <div class="bg-gray-100 rounded-lg mt-5 mb-5 flex items-center ">
         <input
           type="text"
           placeholder="Add a new task"
           class="w-full p-4 bg-gray-100 focus:outline-none text-gray-600"
           v-model="newTask"
-          @keyup.enter="addNewTask"
+          @keyup.enter="handleAddNewTask"
           @mousedown.stop
           @keydown.delete.stop
         />
         <button 
-          @click.stop="addNewTask"
+          @click.stop="handleAddNewTask"
           class="p-4 text-blue-600 hover:text-blue-800"
         >
           <img src="/icons/Add-Circle.svg" alt="">
         </button>
       </div>
 
-      <ul class="space-y-4 overflow-y-auto">
+      <ul class="space-y-4 overflow-y-auto overflow-x-hidden" :data-list-id="list.id">
         <li 
-          v-for="task in list.content.tasks" 
-          :key="task.task_id" 
-          class="flex gap-3"
+          v-for="(task, index) in list.content.tasks" 
+          :key="task.task_id"
+          :data-list-id="list.id"
+          class="flex gap-3 items-center"
+          draggable="true"
+          @dragstart="dragStart(index, $event)"
+          @dragover.prevent="dragOver(index)"
+          @dragenter.prevent
+          @drop="drop(index, $event)"
+          :class="{ 'dragging': isDragging && draggedItemIndex === index, 'drag-over': isDragging && dropIndex === index }"
         >
+          <div class="drag-handle cursor-move px-1 text-gray-400 hover:text-gray-600">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="8" cy="8" r="1" />
+              <circle cx="8" cy="16" r="1" />
+              <circle cx="16" cy="8" r="1" />
+              <circle cx="16" cy="16" r="1" />
+            </svg>
+          </div>
           <button 
             class="w-6 h-6 rounded border-2 border-blue-600 flex items-center justify-center flex-shrink-0"
             :class="{ 'bg-blue-600': task.completed }"
             @click.stop="toggleTask(task)"
+             :data-list-id="list.id"
           >
             <svg
               v-if="task.completed"
@@ -91,6 +107,7 @@
             class="flex-grow cursor-pointer text-base"
             :class="{ 'line-through text-gray-400': task.completed }"
             @dblclick.stop="startEditing(task)"
+            :data-list-id="list.id"
           >
             {{ task.content }}
           </span>
@@ -109,9 +126,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, computed } from 'vue'
+import { ref, nextTick, computed, watch } from 'vue'
 import { useBoardStore } from '~/stores/board'
 import { useTodoStore } from '~/stores/todoStore'
+import { useTodo } from '~/composables/useTodo'
 import type { TodoList, Task } from '~/types/board'
 
 const props = defineProps<{
@@ -121,14 +139,48 @@ const props = defineProps<{
 
 const boardStore = useBoardStore()
 const todoStore = useTodoStore()
-const localTitle = ref(props.list.content.title)
-const isEditingTitle = ref(false)
-const titleInput = ref<HTMLInputElement | null>(null)
-const titleDisplay = ref<HTMLElement | null>(null)
 const newTask = ref('')
-const editingTaskId = ref<string | null>(null)
-const editingContent = ref('')
-const editInput = ref<HTMLInputElement | null>(null)
+const titleDisplay = ref<HTMLElement | null>(null)
+
+// Use the todo composable
+const {
+  localTitle,
+  isEditingTitle,
+  titleInput,
+  editingTaskId,
+  editingContent,
+  editInput,
+  draggedItemIndex,
+  isDragging,
+  dropIndex,
+  
+  // Title functions
+  startTitleEdit,
+  saveTitle,
+  cancelTitleEdit,
+  
+  // Task functions
+  addNewTask,
+  deleteTask,
+  toggleTask,
+  startEditing,
+  saveTaskEdit,
+  cancelTaskEdit,
+  
+  // Drag and drop functions
+  dragStart,
+  drop,
+  dragOver,
+  dragEnd
+} = useTodo(props.list)
+
+// Handle adding a new task
+const handleAddNewTask = () => {
+  if (newTask.value.trim()) {
+    addNewTask(newTask.value)
+    newTask.value = ''
+  }
+}
 
 const titleSizeClass = computed(() => {
   const lines = titleDisplay.value ? 
@@ -141,86 +193,44 @@ const titleSizeClass = computed(() => {
   if (localTitle.value.length > 50) return 'text-lg'
   return 'text-xl'
 })
-
-function startTitleEdit() {
-  isEditingTitle.value = true
-  nextTick(() => {
-    titleInput.value?.focus()
-  })
-}
-
-function saveTitle() {
-  if (localTitle.value.trim() === '') {
-    localTitle.value = props.list.content.title
-  } else if (localTitle.value !== props.list.content.title) {
-    todoStore.updateTodoTitle(props.list.id, localTitle.value)
-  }
-  isEditingTitle.value = false
-}
-
-function cancelTitleEdit() {
-  localTitle.value = props.list.content.title
-  isEditingTitle.value = false
-}
-
-function addNewTask() {
-  if (!newTask.value.trim()) return
-  todoStore.addTask(props.list.id, newTask.value)
-  newTask.value = ''
-}
-
-function deleteTask(task: Task) {
-  todoStore.deleteTask(props.list.id, task.task_id)
-}
-
-function toggleTask(task: Task) {
-  todoStore.toggleTaskCompletion(props.list.id, task.task_id)
-}
-
-function startEditing(task: Task) {
-  editingTaskId.value = task.task_id
-  editingContent.value = task.content
-  nextTick(()=> {
-    editInput.value?.focus()
-  })
-}
-
-function saveTaskEdit(task: Task) {
-  if (editingTaskId.value === null) return
-  if (editingContent.value.trim() !== '') {
-    todoStore.updateTask(props.list.id, task.task_id, editingContent.value)
-  }
-  editingTaskId.value = null
-  editingContent.value = ''
-}
-
-function cancelTaskEdit() {
-  editingTaskId.value = null
-  editingContent.value = ''
-}
 </script>
 
 <style scoped>
-.todo-list {
-  min-width: 300px;
-  min-height: 200px;
+.ghost-task {
+  opacity: 0.5;
+  background: #e2f1ff;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  position: absolute;
 }
 
-/* Custom scrollbar styles */
-.overflow-auto::-webkit-scrollbar {
-  width: 8px;
+.dragging {
+  opacity: 0.5;
+  background: #f3f4f6;
 }
 
-.overflow-auto::-webkit-scrollbar-track {
-  background: transparent;
+.drag-over {
+  border-bottom: 2px solid #3b82f6;
 }
 
-.overflow-auto::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+/* Add visual cue for draggable items */
+li[draggable=true] {
+  cursor: move;
+  transition: background-color 0.2s, border-color 0.2s;
 }
 
-.overflow-auto::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+li[draggable=true]:hover {
+  background-color: #f9fafb;
+}
+
+/* Style for the drag handle */
+.drag-handle {
+  cursor: grab;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+li:hover .drag-handle {
+  opacity: 1;
 }
 </style>

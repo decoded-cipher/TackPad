@@ -6,7 +6,7 @@ import { debounce } from 'lodash'
 import { useRoute } from 'vue-router'
 
 // import type { EncryptedData } from '~/types/encryption'
-import type { Board, BoardItem, Boards } from '~/types/board'
+import type { Board, BoardItem, Boards, Task } from '~/types/board'
 import { usePasswordDialog } from '~/composables/usePasswordDialog'
 import { decrypt, encrypt } from '~/utils/crypto'
 
@@ -22,6 +22,10 @@ export const useBoardStore = defineStore('board', () => {
   const ZOOM_LEVEL = ref(1) // New reference for tracking zoom levels (1 = overview zoom level)
   const password = ref(null)
   const boards = useLocalStorage<Boards>('boards', {})
+
+  const fromListId = ref<string | null>(null)
+  const toListId = ref<string | null>(null)
+  const draggedTask = ref<Task | null>(null)
 
   // Get route at the store level
   const route = useRoute()
@@ -166,6 +170,9 @@ export const useBoardStore = defineStore('board', () => {
     translateY,
     ZOOM_LEVEL,
     password,
+    fromListId,
+    toListId,
+    draggedTask,
 
     // Actions
     initializeBoard,
