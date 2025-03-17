@@ -43,9 +43,6 @@
     onBeforeUnmount(() => {
       editor.value?.destroy()
     })
-    onBeforeUnmount(() => {
-      editor.value?.destroy()
-    })
   </script>
   <style lang="scss">
   /* Basic editor styles */
