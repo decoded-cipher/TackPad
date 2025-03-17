@@ -49,7 +49,14 @@
         </button>
       </div>
 
-      <ul class="space-y-4 overflow-y-auto overflow-x-hidden" :data-list-id="list.id">
+      <ul class="space-y-4 overflow-y-auto overflow-x-hidden min-h-[100px]" 
+          :data-list-id="list.id"
+          @dragover.prevent="handleDragOver($event)"
+          @dragenter.prevent
+          @dragleave="handleDragLeave($event)"
+          @drop="handleEmptyListDrop($event)"
+          :class="{ 'empty-list-drag-over': isEmptyListDragOver && list.content.tasks.length === 0 }"
+      >
         <li 
           v-for="(task, index) in list.content.tasks" 
           :key="task.task_id"
@@ -60,6 +67,11 @@
           @dragover.prevent="dragOver(index)"
           @dragenter.prevent
           @drop="drop(index, $event)"
+          @dragend="dragEnd"
+          @touchstart.passive="touchStart(index, $event)"
+          @touchmove="touchMove($event)"
+          @touchend="touchEnd($event)"
+          @touchcancel="touchCancel()"
           :class="{ 'dragging': isDragging && draggedItemIndex === index, 'drag-over': isDragging && dropIndex === index }"
         >
           <div class="drag-handle cursor-move px-1 text-gray-400 hover:text-gray-600">
@@ -120,6 +132,9 @@
             </button>
           </span>
         </li>
+        <li v-if="isEmptyListDragOver && list.content.tasks.length === 0" class="flex justify-center items-center h-12 text-gray-400">
+          Drop task here
+        </li>
       </ul>
     </div>
   </div>
@@ -171,7 +186,13 @@ const {
   dragStart,
   drop,
   dragOver,
-  dragEnd
+  dragEnd,
+  
+  // Touch drag and drop functions
+  touchStart,
+  touchMove,
+  touchEnd,
+  touchCancel
 } = useTodo(props.list)
 
 // Handle adding a new task
@@ -193,44 +214,139 @@ const titleSizeClass = computed(() => {
   if (localTitle.value.length > 50) return 'text-lg'
   return 'text-xl'
 })
+
+const isEmptyListDragOver = ref(false)
+
+const handleDragOver = (event: DragEvent) => {
+  event.preventDefault()
+  isEmptyListDragOver.value = true
+}
+
+const handleDragLeave = (event: DragEvent) => {
+  event.preventDefault()
+  isEmptyListDragOver.value = false
+}
+
+const handleEmptyListDrop = (event: DragEvent) => {
+  // If the list is not empty, we don't need special handling
+  if (props.list.content.tasks.length > 0) return
+  
+  // For empty lists, call the drop function with index 0
+  // This will use the existing cross-list logic in useTodo.ts
+  drop(0, event)
+}
 </script>
 
 <style scoped>
-.ghost-task {
-  opacity: 0.5;
-  background: #e2f1ff;
-  border-radius: 0.5rem;
-  padding: 0.5rem;
-  position: absolute;
-}
-
 .dragging {
-  opacity: 0.5;
-  background: #f3f4f6;
+  opacity: 0.4;
+  transform: scale(1.02);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: #f0f9ff;
+  border-radius: 0.375rem;
 }
 
 .drag-over {
-  border-bottom: 2px solid #3b82f6;
+  position: relative;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+.drag-over::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background-color: #3b82f6;
+  animation: pulse 1.5s infinite;
+  border-radius: 1px;
+}
+
+.empty-list-drag-over {
+  background-color: #f0f9ff;
+  border: 2px dashed #3b82f6;
+  border-radius: 0.5rem;
+  animation: pulse-border 1.5s infinite;
+  transition: all 0.3s ease;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes pulse-border {
+  0% {
+    border-color: #93c5fd;
+  }
+  50% {
+    border-color: #3b82f6;
+  }
+  100% {
+    border-color: #93c5fd;
+  }
 }
 
 /* Add visual cue for draggable items */
 li[draggable=true] {
   cursor: move;
-  transition: background-color 0.2s, border-color 0.2s;
+  transition: all 0.2s ease;
+  padding: 8px;
+  border-radius: 0.375rem;
+  background-color: white;
+  border: 1px solid transparent;
+  will-change: transform, opacity, box-shadow;
 }
 
 li[draggable=true]:hover {
   background-color: #f9fafb;
+  border-color: #e5e7eb;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 /* Style for the drag handle */
 .drag-handle {
   cursor: grab;
-  opacity: 0.5;
-  transition: opacity 0.2s;
+  opacity: 0.4;
+  transition: all 0.2s ease;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.drag-handle:hover {
+  background-color: #f3f4f6;
+  opacity: 1;
 }
 
 li:hover .drag-handle {
-  opacity: 1;
+  opacity: 0.8;
+}
+
+li .drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Add a ghost element when dragging */
+li[draggable=true]:active {
+  cursor: grabbing;
+}
+
+/* Smooth transitions for all interactions */
+ul {
+  transition: background-color 0.3s ease;
+}
+
+li {
+  transition: transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
 }
 </style>

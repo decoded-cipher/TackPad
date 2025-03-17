@@ -131,7 +131,7 @@ const closeMenu = () => {
         </transition>
       </div>
     </div>
-    <div class="widget-content">
+    <div class="widget-content" @wheel.stop>
       <slot></slot>
     </div>
     <div

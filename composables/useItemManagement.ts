@@ -30,7 +30,7 @@ export function useItemManagement() {
       x: position.x,
       y: position.y,
       width: 300,
-      height: 300,
+      height: 400,
       lock: false,
     });
   };
