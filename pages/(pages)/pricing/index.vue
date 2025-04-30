@@ -40,7 +40,7 @@ const plans = [
             "1GB Cloud Storage",
             "Store images, audio notes, and various file types",
             "Enhanced file support",
-            "Priority support (coming soon)",
+            "Support development of Tackpad for everyone",
         ],
         cta: "Upgrade to Pro",
         action: "openUpgradePopup", // Action identifier
