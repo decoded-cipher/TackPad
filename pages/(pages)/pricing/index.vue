@@ -15,7 +15,7 @@ const phone = ref("");
 const plans = [
     {
         name: "Free",
-        price: "$0",
+        price: "₹0",
         frequency: "/ forever",
         description:
             "Perfect for getting started. Store your essential notes and basic media.",
@@ -32,7 +32,7 @@ const plans = [
     },
     {
         name: "Pro",
-        price: "$10",
+        price: "₹1111",
         frequency: "/ year",
         description:
             "Ideal for users who need more space for their projects and media.",
@@ -282,7 +282,7 @@ const handlePlanAction = (actionName) => {
                                             <p
                                                 class="text-3xl font-extrabold text-gray-900"
                                             >
-                                                $10
+                                                ₹1111
                                                 <span
                                                     class="text-lg font-medium text-gray-500"
                                                     >/ year</span
