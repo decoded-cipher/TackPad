@@ -49,7 +49,7 @@ onMounted(() => {
 onUnmounted(() => {
     window.removeEventListener("resize", updateSize);
 });
-const emit = defineEmits("backupOpen");
+const emit = defineEmits(["backupOpen"]);
 </script>
 
 <template>
