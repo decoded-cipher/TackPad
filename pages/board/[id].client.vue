@@ -230,7 +230,7 @@ definePageMeta({
             v-if="showBackupAlert"
             @backupToggle="handleBackupToggle"
         />
-        <ProfilePopup />
+        <ProfilePopup @backupOpen="backupShow = true" />
         <ExportModal
             v-if="backupShow"
             @backupSuccess="showBackupAlert = false"
