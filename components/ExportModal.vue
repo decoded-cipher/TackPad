@@ -74,7 +74,7 @@ const removeFromExportList = (boardId: string) => {
 
     selectedBoardIdsForExport.value.delete(boardId); // Also deselect it
 };
-const emit = defineEmits("backupSuccess");
+const emit = defineEmits(["backupSuccess"]);
 const BACKUP_LOCALSTORAGE_KEY = "isBackedUp";
 const handleExport = async () => {
     if (selectedBoardIdsForExport.value.size === 0) {
